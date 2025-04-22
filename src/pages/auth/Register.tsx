@@ -153,7 +153,7 @@ const Register = () => {
                   defaultValue="buyer" 
                   value={role} 
                   onValueChange={(value) => setRole(value as UserRole)}
-                  className="grid grid-cols-2 gap-2"
+                  className="grid grid-cols-3 gap-2"
                 >
                   <Label
                     htmlFor="buyer"
@@ -173,6 +173,16 @@ const Register = () => {
                     <span className="font-medium">Seller</span>
                     <span className="text-xs text-muted-foreground">
                       Sell your products
+                    </span>
+                  </Label>
+                  <Label
+                    htmlFor="logistics"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-muted/30 p-4 hover:bg-muted/40 cursor-pointer"
+                  >
+                    <RadioGroupItem value="logistics" id="logistics" className="sr-only" />
+                    <span className="font-medium">Logistics</span>
+                    <span className="text-xs text-muted-foreground">
+                      Deliver products
                     </span>
                   </Label>
                 </RadioGroup>

@@ -48,7 +48,7 @@ const Index = () => {
           <h2 className="text-3xl font-bold text-center mb-12">Platform Features</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="bg-card/30 backdrop-blur-sm p-6 rounded-lg border border-border/40 flex flex-col items-center text-center hover-scale">
+            <div className="bg-card/30 backdrop-blur-sm p-6 rounded-lg border border-border/40 flex flex-col items-center text-center hover-scale h-full">
               <div className="p-3 bg-primary/10 rounded-full mb-4">
                 <ShoppingBag className="h-6 w-6 text-primary" />
               </div>
@@ -58,7 +58,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="bg-card/30 backdrop-blur-sm p-6 rounded-lg border border-border/40 flex flex-col items-center text-center hover-scale">
+            <div className="bg-card/30 backdrop-blur-sm p-6 rounded-lg border border-border/40 flex flex-col items-center text-center hover-scale h-full">
               <div className="p-3 bg-primary/10 rounded-full mb-4">
                 <Heart className="h-6 w-6 text-primary" />
               </div>
@@ -68,7 +68,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="bg-card/30 backdrop-blur-sm p-6 rounded-lg border border-border/40 flex flex-col items-center text-center hover-scale">
+            <div className="bg-card/30 backdrop-blur-sm p-6 rounded-lg border border-border/40 flex flex-col items-center text-center hover-scale h-full">
               <div className="p-3 bg-primary/10 rounded-full mb-4">
                 <Package className="h-6 w-6 text-primary" />
               </div>
@@ -78,7 +78,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="bg-card/30 backdrop-blur-sm p-6 rounded-lg border border-border/40 flex flex-col items-center text-center hover-scale">
+            <div className="bg-card/30 backdrop-blur-sm p-6 rounded-lg border border-border/40 flex flex-col items-center text-center hover-scale h-full">
               <div className="p-3 bg-primary/10 rounded-full mb-4">
                 <Truck className="h-6 w-6 text-primary" />
               </div>
@@ -154,6 +154,14 @@ const Index = () => {
               <p className="text-muted-foreground mb-4 flex-1">
                 Track deliveries, update order status, and manage the shipping process from warehouse to customer.
               </p>
+              {!user && (
+                <Button variant="outline" size="sm" className="self-start" asChild>
+                  <Link to="/register">
+                    Register as Logistics
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </div>

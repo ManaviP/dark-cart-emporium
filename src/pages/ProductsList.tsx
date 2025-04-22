@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,7 +32,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-// Mock product data
 const mockProducts = [
   {
     id: 1,
@@ -125,7 +123,6 @@ const mockProducts = [
   }
 ];
 
-// Categories with their icons
 const categories = [
   { value: "all", label: "All Categories" },
   { value: "books", label: "Books" },
@@ -144,8 +141,8 @@ const ProductsList = () => {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [priceSort, setPriceSort] = useState("none");
   const [filterCount, setFilterCount] = useState(0);
+  const navigate = useNavigate();
 
-  // Initialize filters from URL parameters
   useEffect(() => {
     const category = searchParams.get("category");
     if (category) {
@@ -153,7 +150,6 @@ const ProductsList = () => {
     }
   }, [searchParams]);
 
-  // Update filter count
   useEffect(() => {
     let count = 0;
     if (searchTerm) count++;
@@ -165,7 +161,6 @@ const ProductsList = () => {
     setFilterCount(count);
   }, [searchTerm, categoryFilter, perishableOnly, nonPerishableOnly, inStockOnly, priceSort]);
 
-  // Apply filters
   useEffect(() => {
     let filtered = [...mockProducts];
     
@@ -200,7 +195,6 @@ const ProductsList = () => {
     
     setProducts(filtered);
     
-    // Update URL params
     if (categoryFilter !== "all") {
       setSearchParams({ category: categoryFilter });
     } else {
@@ -208,7 +202,6 @@ const ProductsList = () => {
     }
   }, [searchTerm, categoryFilter, perishableOnly, nonPerishableOnly, inStockOnly, priceSort, setSearchParams]);
   
-  // Reset all filters
   const resetFilters = () => {
     setSearchTerm("");
     setCategoryFilter("all");
@@ -216,6 +209,10 @@ const ProductsList = () => {
     setNonPerishableOnly(false);
     setInStockOnly(false);
     setPriceSort("none");
+  };
+
+  const handleCardClick = (productId: number) => {
+    navigate(`/products/${productId}`);
   };
 
   return (
@@ -228,7 +225,6 @@ const ProductsList = () => {
           </p>
         </div>
         
-        {/* Mobile search and filter buttons */}
         <div className="flex items-center gap-2 w-full md:w-auto mt-4 md:mt-0">
           <div className="relative flex-1 md:hidden">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -348,7 +344,6 @@ const ProductsList = () => {
         </div>
       </div>
       
-      {/* Desktop search and filters */}
       <div className="hidden md:flex items-start gap-6 mb-8">
         <div className="flex-1 max-w-md relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -395,7 +390,6 @@ const ProductsList = () => {
         </div>
       </div>
       
-      {/* Active filters (desktop) */}
       {filterCount > 0 && (
         <div className="hidden md:flex items-center gap-2 mb-4 flex-wrap">
           <span className="text-sm font-medium">Active filters:</span>
@@ -476,7 +470,6 @@ const ProductsList = () => {
         </div>
       )}
       
-      {/* Product filters (desktop) */}
       <div className="hidden md:flex flex-wrap gap-4 mb-8">
         <Card className="w-full max-w-xs flex-shrink-0">
           <CardHeader className="pb-3">
@@ -533,11 +526,14 @@ const ProductsList = () => {
           </CardContent>
         </Card>
         
-        {/* Products grid */}
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.length > 0 ? (
             products.map((product) => (
-              <Card key={product.id} className="overflow-hidden group hover-scale border border-border/40 bg-card/30 backdrop-blur-sm">
+              <Card 
+                key={product.id} 
+                className="overflow-hidden group hover-scale border border-border/40 bg-card/30 backdrop-blur-sm cursor-pointer relative"
+                onClick={() => handleCardClick(product.id)}
+              >
                 <div className="aspect-square overflow-hidden relative">
                   <img 
                     src={product.image} 
@@ -566,26 +562,28 @@ const ProductsList = () => {
                 </CardHeader>
                 <CardFooter className="p-4 pt-0 flex gap-2">
                   <Button 
-                    className="flex-1" 
+                    className="flex-1 z-10" 
                     size="sm" 
                     disabled={!product.inStock}
-                    asChild
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/products/${product.id}`);
+                    }}
                   >
-                    <Link to={`/products/${product.id}`}>
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      Buy
-                    </Link>
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    Buy
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="flex-1"
-                    asChild
+                    className="flex-1 z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/products/${product.id}?donate=true`);
+                    }}
                   >
-                    <Link to={`/products/${product.id}?donate=true`}>
-                      <Gift className="mr-2 h-4 w-4" />
-                      Donate
-                    </Link>
+                    <Gift className="mr-2 h-4 w-4" />
+                    Donate
                   </Button>
                 </CardFooter>
               </Card>
@@ -611,11 +609,14 @@ const ProductsList = () => {
         </div>
       </div>
       
-      {/* Mobile products grid */}
       <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
         {products.length > 0 ? (
           products.map((product) => (
-            <Card key={product.id} className="overflow-hidden group border border-border/40 bg-card/30 backdrop-blur-sm">
+            <Card 
+              key={product.id} 
+              className="overflow-hidden group border border-border/40 bg-card/30 backdrop-blur-sm cursor-pointer relative"
+              onClick={() => handleCardClick(product.id)}
+            >
               <div className="aspect-square overflow-hidden relative">
                 <img 
                   src={product.image} 
@@ -642,28 +643,30 @@ const ProductsList = () => {
                 </div>
                 <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{product.description}</p>
               </CardHeader>
-              <CardFooter className="p-3 pt-0 flex gap-1">
+              <CardFooter className="p-3 pt-0 flex gap-2">
                 <Button 
-                  className="flex-1" 
+                  className="flex-1 z-10" 
                   size="sm" 
                   disabled={!product.inStock}
-                  asChild
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/products/${product.id}`);
+                  }}
                 >
-                  <Link to={`/products/${product.id}`}>
-                    <ShoppingCart className="mr-1 h-3 w-3" />
-                    Buy
-                  </Link>
+                  <ShoppingCart className="mr-1 h-3 w-3" />
+                  Buy
                 </Button>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="flex-1"
-                  asChild
+                  className="flex-1 z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/products/${product.id}?donate=true`);
+                  }}
                 >
-                  <Link to={`/products/${product.id}?donate=true`}>
-                    <Gift className="mr-1 h-3 w-3" />
-                    Donate
-                  </Link>
+                  <Gift className="mr-1 h-3 w-3" />
+                  Donate
                 </Button>
               </CardFooter>
             </Card>
