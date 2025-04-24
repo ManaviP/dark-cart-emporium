@@ -346,7 +346,7 @@ const ProductsList = () => {
                       <SelectValue placeholder="Select company" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Companies</SelectItem>
+                      <SelectItem value="all">All Companies</SelectItem>
                       {companies.map(company => (
                         <SelectItem key={company.value} value={company.value}>
                           {company.label}
