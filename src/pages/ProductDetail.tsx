@@ -24,6 +24,8 @@ const mockProducts = [
     perishable: false,
     inStock: true,
     rating: 4.8,
+    company: "Sony",
+    priority: "medium",
     longDescription: "Experience music like never before with our Premium Headphones. Featuring advanced noise-cancellation technology, these wireless headphones deliver crystal-clear sound quality and deep, rich bass. The comfortable over-ear design makes them perfect for long listening sessions, while the 30-hour battery life ensures your music never stops. Compatible with all Bluetooth devices and includes a premium carrying case.",
     specifications: [
       { name: "Battery Life", value: "30 hours" },
@@ -43,6 +45,8 @@ const mockProducts = [
     perishable: true,
     inStock: true,
     rating: 4.5,
+    company: "Organic Farms",
+    priority: "high",
     longDescription: "Our Organic Apples are grown without the use of synthetic pesticides and fertilizers. Handpicked at the peak of ripeness from local sustainable farms, these crisp, juicy apples are perfect for healthy snacking or baking. Each order contains approximately 6-8 apples depending on size, all certified organic and sustainably grown.",
     specifications: [
       { name: "Origin", value: "Local Farms" },
@@ -62,6 +66,8 @@ const mockProducts = [
     perishable: false,
     inStock: true,
     rating: 4.2,
+    company: "Penguin Books",
+    priority: "low",
     longDescription: "Dive into an epic fantasy adventure with our bestselling novel. Set in a richly imagined world of magic and intrigue, this tale follows the journey of an unlikely hero as they discover their hidden powers and face ancient evils. With complex characters, intricate world-building, and plot twists that will keep you guessing, this novel has captivated readers worldwide. Available in hardcover with a beautifully designed cover illustration.",
     specifications: [
       { name: "Author", value: "J.R. Tolkien" },
@@ -80,12 +86,12 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  
+
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
-  
+
   // Get product details
   useEffect(() => {
     // Simulate API call
@@ -96,7 +102,7 @@ const ProductDetail = () => {
       setLoading(false);
     }, 500);
   }, [id]);
-  
+
   // Handle quantity change
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value);
@@ -104,7 +110,7 @@ const ProductDetail = () => {
       setQuantity(value);
     }
   };
-  
+
   // Add to cart function
   const handleAddToCart = () => {
     if (!user) {
@@ -116,13 +122,13 @@ const ProductDetail = () => {
       navigate("/login");
       return;
     }
-    
+
     toast({
       title: "Added to cart",
       description: `${quantity} × ${product.name} added to your cart`,
     });
   };
-  
+
   // Donate function
   const handleDonate = () => {
     if (!user) {
@@ -134,13 +140,13 @@ const ProductDetail = () => {
       navigate("/login");
       return;
     }
-    
+
     toast({
       description: `Thank you for donating ${quantity} × ${product.name}!`,
-      
+
     });
   };
-  
+
   // Save to wishlist
   const handleSaveItem = () => {
     if (!user) {
@@ -152,12 +158,12 @@ const ProductDetail = () => {
       navigate("/login");
       return;
     }
-    
+
     toast({
       description: `${product.name} saved to your wishlist`,
     });
   };
-  
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-12 flex justify-center">
@@ -215,14 +221,14 @@ const ProductDetail = () => {
         {/* Product image */}
         <div className="md:w-1/2">
           <div className="aspect-square overflow-hidden rounded-lg border border-border/40 bg-card/30 backdrop-blur-sm">
-            <img 
-              src={product.image} 
+            <img
+              src={product.image}
               alt={product.name}
               className="object-cover w-full h-full"
             />
           </div>
         </div>
-        
+
         {/* Product info */}
         <div className="md:w-1/2 space-y-6">
           <div>
@@ -230,44 +236,44 @@ const ProductDetail = () => {
             <div className="flex items-center gap-2">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
-                  <Star 
-                    key={i} 
-                    className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-muted'}`} 
+                  <Star
+                    key={i}
+                    className={`h-4 w-4 ${i < Math.floor(product.rating) ? 'text-yellow-500 fill-yellow-500' : 'text-muted'}`}
                   />
                 ))}
               </div>
               <span className="text-sm font-medium">{product.rating}</span>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
-            <span className="text-3xl font-bold">${product.price.toFixed(2)}</span>
-            
+            <span className="text-3xl font-bold">₹{product.price.toFixed(2)}</span>
+
             {product.perishable && (
               <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
                 Perishable
               </Badge>
             )}
-            
+
             {!product.inStock && (
               <Badge variant="destructive">Out of Stock</Badge>
             )}
           </div>
-          
+
           <p className="text-muted-foreground">{product.description}</p>
-          
+
           <div className="flex items-center gap-2 text-sm">
             <Truck className="h-4 w-4 text-muted-foreground" />
-            <span>Free shipping on orders over $50</span>
+            <span>Free shipping on orders over ₹50</span>
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm">
             <Clock className="h-4 w-4 text-muted-foreground" />
             <span>Usually ships within 1-2 business days</span>
           </div>
-          
+
           <Separator />
-          
+
           {/* Purchase controls */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
@@ -288,18 +294,18 @@ const ProductDetail = () => {
                 {product.inStock ? "In Stock" : "Out of Stock"}
               </span>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button 
-                size="lg" 
-                className="flex-1" 
+              <Button
+                size="lg"
+                className="flex-1"
                 disabled={!product.inStock}
                 onClick={isDonate ? handleDonate : handleAddToCart}
               >
                 {isDonate ? (
                   <>
                     <Gift className="mr-2 h-5 w-5" />
-                    Donate Now (${(product.price * quantity).toFixed(2)})
+                    Donate Now (₹{(product.price * quantity).toFixed(2)})
                   </>
                 ) : (
                   <>
@@ -308,11 +314,11 @@ const ProductDetail = () => {
                   </>
                 )}
               </Button>
-              
+
               {!isDonate && (
-                <Button 
-                  variant="outline" 
-                  size="lg" 
+                <Button
+                  variant="outline"
+                  size="lg"
                   className="flex-1 sm:flex-none"
                   onClick={handleSaveItem}
                 >
@@ -320,7 +326,7 @@ const ProductDetail = () => {
                   Save
                 </Button>
               )}
-              
+
               {isDonate && (
                 <Button
                   variant="outline"
@@ -337,26 +343,26 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Product details tabs */}
       <Card className="border border-border/40 bg-card/30 backdrop-blur-sm">
         <CardHeader className="px-6">
-          <Tabs 
-            defaultValue={activeTab} 
-            className="w-full" 
+          <Tabs
+            defaultValue={activeTab}
+            className="w-full"
             onValueChange={setActiveTab}
           >
             <TabsList className="grid w-full grid-cols-2 md:w-auto md:inline-flex">
               <TabsTrigger value="description">Description</TabsTrigger>
               <TabsTrigger value="specifications">Specifications</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="description" className="mt-6">
               <div className="space-y-4">
                 <p>{product.longDescription}</p>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="specifications" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {product.specifications.map((spec: any, index: number) => (

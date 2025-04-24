@@ -41,19 +41,19 @@ const Cart = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  
+
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoDiscount, setPromoDiscount] = useState(0);
-  
+
   // Calculate subtotal
   const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   const shipping = subtotal > 50 ? 0 : 5.99;
   const discount = promoApplied ? promoDiscount : 0;
   const total = subtotal + shipping - discount;
-  
+
   // Load cart data
   useEffect(() => {
     // Simulate API call
@@ -63,50 +63,50 @@ const Cart = () => {
       setLoading(false);
     }, 500);
   }, []);
-  
+
   // Update quantity
   const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity < 1) return;
-    
-    const updatedCart = cartItems.map(item => 
+
+    const updatedCart = cartItems.map(item =>
       item.id === id ? { ...item, quantity: newQuantity } : item
     );
-    
+
     setCartItems(updatedCart);
   };
-  
+
   // Remove item
   const removeItem = (id: number) => {
     const updatedCart = cartItems.filter(item => item.id !== id);
     setCartItems(updatedCart);
-    
+
     toast({
       description: "Item removed from your cart",
     });
   };
-  
+
   // Donate item
   const donateItem = (id: number) => {
     const item = cartItems.find(item => item.id === id);
-    
+
     if (item) {
       toast({
         title: "Thank you for your donation!",
         description: `${item.quantity} × ${item.name} has been donated.`,
       });
-      
+
       // Remove from cart
       removeItem(id);
     }
   };
-  
+
   // Apply promo code
   const applyPromoCode = () => {
     if (promoCode.toLowerCase() === "discount20") {
       const discount = subtotal * 0.2;
       setPromoDiscount(discount);
       setPromoApplied(true);
-      
+
       toast({
         description: "Promo code applied successfully!",
       });
@@ -118,7 +118,7 @@ const Cart = () => {
       });
     }
   };
-  
+
   // Handle checkout
   const handleCheckout = () => {
     if (cartItems.length === 0) {
@@ -129,10 +129,10 @@ const Cart = () => {
       });
       return;
     }
-    
+
     navigate("/checkout");
   };
-  
+
   // Empty cart display
   if (!loading && cartItems.length === 0) {
     return (
@@ -210,7 +210,7 @@ const Cart = () => {
                           />
                         </div>
                       </Link>
-                      
+
                       <div className="flex-1">
                         <Link to={`/products/${item.productId}`} className="hover:underline">
                           <h3 className="font-medium line-clamp-1">{item.name}</h3>
@@ -238,7 +238,7 @@ const Cart = () => {
                               <PlusCircle className="h-4 w-4" />
                             </Button>
                           </div>
-                          
+
                           <Button
                             variant="ghost"
                             size="sm"
@@ -248,7 +248,7 @@ const Cart = () => {
                             <Trash2 className="h-4 w-4 mr-1" />
                             <span className="text-xs">Remove</span>
                           </Button>
-                          
+
                           <Button
                             variant="ghost"
                             size="sm"
@@ -260,7 +260,7 @@ const Cart = () => {
                           </Button>
                         </div>
                       </div>
-                      
+
                       <div className="text-right font-medium">
                         ${(item.price * item.quantity).toFixed(2)}
                       </div>
@@ -271,7 +271,7 @@ const Cart = () => {
             </div>
           )}
         </div>
-        
+
         {/* Order summary */}
         <div className="lg:w-1/3">
           <Card className="border border-border/40 bg-card/30 backdrop-blur-sm sticky top-20">
@@ -282,7 +282,7 @@ const Cart = () => {
             <CardContent className="pb-4 space-y-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Shipping</span>
@@ -290,25 +290,25 @@ const Cart = () => {
                   {shipping === 0 ? (
                     <span className="text-green-500">Free</span>
                   ) : (
-                    `$${shipping.toFixed(2)}`
+                    `₹${shipping.toFixed(2)}`
                   )}
                 </span>
               </div>
-              
+
               {promoApplied && (
                 <div className="flex justify-between text-green-500">
                   <span>Discount (20%)</span>
-                  <span>-${discount.toFixed(2)}</span>
+                  <span>-₹{discount.toFixed(2)}</span>
                 </div>
               )}
-              
+
               <Separator />
-              
+
               <div className="flex justify-between font-medium text-lg">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>₹{total.toFixed(2)}</span>
               </div>
-              
+
               {/* Promo code */}
               <div className="mt-4 pt-4">
                 <label htmlFor="promo" className="text-sm font-medium mb-2 block">
@@ -342,8 +342,8 @@ const Cart = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 size="lg"
                 onClick={handleCheckout}
                 disabled={loading || cartItems.length === 0}

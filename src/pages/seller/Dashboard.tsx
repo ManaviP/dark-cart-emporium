@@ -67,7 +67,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Sales</p>
-                <h4 className="text-2xl font-bold mt-1">${stats.totalSales.toFixed(2)}</h4>
+                <h4 className="text-2xl font-bold mt-1">₹{stats.totalSales.toFixed(2)}</h4>
               </div>
               <div className="p-2 rounded-full bg-primary/10">
                 <DollarSign className="h-5 w-5 text-primary" />
@@ -80,7 +80,7 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border border-border/40 bg-card/30 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -99,7 +99,7 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border border-border/40 bg-card/30 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -116,7 +116,7 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border border-border/40 bg-card/30 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -142,7 +142,7 @@ const Dashboard = () => {
           <TabsTrigger value="products">Top Products</TabsTrigger>
           <TabsTrigger value="orders">Recent Orders</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="overview">
           <Card className="border border-border/40 bg-card/30 backdrop-blur-sm">
             <CardHeader>
@@ -158,12 +158,12 @@ const Dashboard = () => {
                     <span>Monthly Revenue</span>
                     <span>Last 6 months</span>
                   </div>
-                  
+
                   <div className="relative h-60">
                     <div className="flex h-full items-end gap-2">
                       {stats.revenueByMonth.map((item, i) => (
                         <div key={i} className="relative flex-1 group">
-                          <div 
+                          <div
                             className="w-full bg-primary/20 rounded-t-sm hover:bg-primary/30 transition-all"
                             style={{ height: `${(item.revenue / 3500) * 100}%` }}
                           ></div>
@@ -186,7 +186,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="products">
           <Card className="border border-border/40 bg-card/30 backdrop-blur-sm">
             <CardHeader>
@@ -208,7 +208,7 @@ const Dashboard = () => {
                         </p>
                       </div>
                     </div>
-                    <span className="font-medium">${product.revenue.toFixed(2)}</span>
+                    <span className="font-medium">₹{product.revenue.toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -220,7 +220,7 @@ const Dashboard = () => {
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="orders">
           <Card className="border border-border/40 bg-card/30 backdrop-blur-sm">
             <CardHeader>
@@ -232,8 +232,8 @@ const Dashboard = () => {
             <CardContent>
               <div className="space-y-4">
                 {stats.recentOrders.map((order, i) => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     className="flex items-center justify-between p-3 rounded-md border border-border/40 bg-muted/30"
                   >
                     <div className="flex items-center gap-3">

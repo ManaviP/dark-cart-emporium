@@ -22,8 +22,13 @@ const Checkout = lazy(() => import("./pages/Checkout"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const Register = lazy(() => import("./pages/auth/Register"));
+const AuthCallback = lazy(() => import("./pages/auth/AuthCallback"));
 const SellerDashboard = lazy(() => import("./pages/seller/Dashboard"));
 const SellerProducts = lazy(() => import("./pages/seller/Products"));
+const SellerAddProduct = lazy(() => import("./pages/seller/AddProduct"));
+const SellerEditProduct = lazy(() => import("./pages/seller/EditProduct"));
+const SellerDonateProduct = lazy(() => import("./pages/seller/DonateProduct"));
+const DonateProduct = lazy(() => import("./components/seller/DonateProduct"));
 const SellerOrders = lazy(() => import("./pages/seller/Orders"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
@@ -46,7 +51,8 @@ const App = () => (
                 {/* Auth Routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                
+                <Route path="/auth/callback" element={<AuthCallback />} />
+
                 {/* Main Layout Routes */}
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Index />} />
@@ -56,28 +62,32 @@ const App = () => (
                   <Route path="cart" element={<Cart />} />
                   <Route path="checkout" element={<Checkout />} />
                   <Route path="profile" element={<Profile />} />
-                  
+
                   {/* Seller Routes */}
                   <Route path="seller">
                     <Route index element={<SellerDashboard />} />
                     <Route path="products" element={<SellerProducts />} />
+                    <Route path="products/add" element={<SellerAddProduct />} />
+                    <Route path="products/edit/:id" element={<SellerEditProduct />} />
+                    <Route path="products/donate/:id" element={<SellerDonateProduct />} />
+                    <Route path="products/donate" element={<DonateProduct />} />
                     <Route path="orders" element={<SellerOrders />} />
                   </Route>
-                  
+
                   {/* Admin Routes */}
                   <Route path="admin">
                     <Route index element={<AdminDashboard />} />
                     <Route path="users" element={<AdminUsers />} />
                     <Route path="donations" element={<AdminDonations />} />
                   </Route>
-                  
+
                   {/* Logistics Routes */}
                   <Route path="logistics">
                     <Route index element={<LogisticsDashboard />} />
                     <Route path="orders" element={<LogisticsOrders />} />
                   </Route>
                 </Route>
-                
+
                 {/* 404 Route */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

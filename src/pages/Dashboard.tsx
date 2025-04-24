@@ -95,7 +95,7 @@ const Dashboard = () => {
                     {statusLabels[order.status as keyof typeof statusLabels]}
                   </Badge>
                   <div className="text-right">
-                    <p className="font-medium">${order.total.toFixed(2)}</p>
+                    <p className="font-medium">₹{order.total.toFixed(2)}</p>
                     <p className="text-sm text-muted-foreground">{order.items} items</p>
                   </div>
                 </div>

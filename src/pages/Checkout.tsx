@@ -47,7 +47,7 @@ const Checkout = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  
+
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingOrder, setProcessingOrder] = useState(false);
@@ -55,7 +55,7 @@ const Checkout = () => {
   const [saveAddress, setSaveAddress] = useState(true);
   const [savePayment, setSavePayment] = useState(true);
   const [orderPlaced, setOrderPlaced] = useState(false);
-  
+
   // Form state
   const [deliveryAddress, setDeliveryAddress] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("credit-card");
@@ -63,20 +63,20 @@ const Checkout = () => {
   const [cardNumber, setCardNumber] = useState<string>("");
   const [expiryDate, setExpiryDate] = useState<string>("");
   const [cvv, setCvv] = useState<string>("");
-  
+
   // Calculate totals
   const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   const shipping = subtotal > 50 ? 0 : 5.99;
   const tax = subtotal * 0.07; // 7% tax
   const total = subtotal + shipping + tax;
-  
+
   // Load cart data and user addresses
   useEffect(() => {
     // Simulate API call
     setLoading(true);
     setTimeout(() => {
       setCartItems(mockCartItems);
-      
+
       // Set default address if user has one
       if (user?.addresses && user.addresses.length > 0) {
         const defaultAddress = user.addresses.find(addr => addr.is_default);
@@ -84,29 +84,29 @@ const Checkout = () => {
           setDeliveryAddress(defaultAddress.id);
         }
       }
-      
+
       setLoading(false);
     }, 500);
   }, [user]);
-  
+
   // Format credit card number
   const formatCardNumber = (value: string) => {
     const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
     const matches = v.match(/\d{4,16}/g);
     const match = matches && matches[0] || '';
     const parts = [];
-    
+
     for (let i = 0; i < match.length; i += 4) {
       parts.push(match.substring(i, i + 4));
     }
-    
+
     if (parts.length) {
       return parts.join(' ');
     } else {
       return value;
     }
   };
-  
+
   // Handle order placement
   const placeOrder = async () => {
     if (!user) {
@@ -118,7 +118,7 @@ const Checkout = () => {
       navigate("/login");
       return;
     }
-    
+
     // Form validation
     if (activeTab === "delivery" && !deliveryAddress) {
       toast({
@@ -128,7 +128,7 @@ const Checkout = () => {
       });
       return;
     }
-    
+
     if (activeTab === "payment") {
       if (paymentMethod === "credit-card") {
         if (!nameOnCard || !cardNumber || !expiryDate || !cvv) {
@@ -139,7 +139,7 @@ const Checkout = () => {
           });
           return;
         }
-        
+
         if (cardNumber.replace(/\s/g, '').length < 16) {
           toast({
             title: "Invalid card number",
@@ -148,7 +148,7 @@ const Checkout = () => {
           });
           return;
         }
-        
+
         if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
           toast({
             title: "Invalid expiry date",
@@ -157,7 +157,7 @@ const Checkout = () => {
           });
           return;
         }
-        
+
         if (!/^\d{3,4}$/.test(cvv)) {
           toast({
             title: "Invalid CVV",
@@ -167,15 +167,15 @@ const Checkout = () => {
           return;
         }
       }
-      
+
       // Process order
       setProcessingOrder(true);
-      
+
       // Simulate API call for order processing
       setTimeout(() => {
         setProcessingOrder(false);
         setOrderPlaced(true);
-        
+
         toast({
           title: "Order placed successfully!",
           description: "Your order has been received and is being processed.",
@@ -186,7 +186,7 @@ const Checkout = () => {
       setActiveTab("payment");
     }
   };
-  
+
   // If order is placed, show success page
   if (orderPlaced) {
     return (
@@ -196,13 +196,13 @@ const Checkout = () => {
             <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="h-8 w-8 text-success" />
             </div>
-            
+
             <h1 className="text-2xl font-bold mb-2">Order Placed Successfully!</h1>
             <p className="text-muted-foreground mb-6">
-              Your order has been received and is being processed. 
+              Your order has been received and is being processed.
               You will receive a confirmation email shortly.
             </p>
-            
+
             <div className="text-left p-4 bg-muted/30 rounded-lg mb-6">
               <div className="flex justify-between mb-2">
                 <span className="text-muted-foreground">Order Number:</span>
@@ -217,7 +217,7 @@ const Checkout = () => {
                 <span className="font-medium">${total.toFixed(2)}</span>
               </div>
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-3">
               <Button className="flex-1" asChild>
                 <Link to="/dashboard">
@@ -258,9 +258,9 @@ const Checkout = () => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Checkout steps */}
         <div className="lg:w-2/3">
-          <Tabs 
-            defaultValue="delivery" 
-            value={activeTab} 
+          <Tabs
+            defaultValue="delivery"
+            value={activeTab}
             onValueChange={setActiveTab}
             className="w-full"
           >
@@ -274,7 +274,7 @@ const Checkout = () => {
                 Payment
               </TabsTrigger>
             </TabsList>
-            
+
             {/* Delivery Tab */}
             <TabsContent value="delivery" className="mt-6 space-y-6">
               <Card>
@@ -334,20 +334,20 @@ const Checkout = () => {
                         </Button>
                       </div>
                     )}
-                    
+
                     {user?.addresses && user.addresses.length > 0 && (
                       <div className="flex justify-between items-center mt-4 pt-4 border-t border-border/40">
                         <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="save-address" 
-                            checked={saveAddress} 
-                            onCheckedChange={(checked) => setSaveAddress(!!checked)} 
+                          <Checkbox
+                            id="save-address"
+                            checked={saveAddress}
+                            onCheckedChange={(checked) => setSaveAddress(!!checked)}
                           />
                           <label htmlFor="save-address" className="text-sm">
                             Use as default address
                           </label>
                         </div>
-                        
+
                         <Button variant="outline" size="sm" asChild>
                           <Link to="/profile">Add New Address</Link>
                         </Button>
@@ -356,7 +356,7 @@ const Checkout = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg">Shipping Method</CardTitle>
@@ -375,7 +375,7 @@ const Checkout = () => {
                             {shipping === 0 ? (
                               <span className="text-green-500">Free</span>
                             ) : (
-                              `$${shipping.toFixed(2)}`
+                              `₹${shipping.toFixed(2)}`
                             )}
                           </span>
                         </div>
@@ -387,7 +387,7 @@ const Checkout = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start space-x-3 border border-border/40 rounded-lg p-4">
                       <RadioGroupItem value="express" id="express" className="mt-1" disabled />
                       <div className="flex-1">
@@ -414,7 +414,7 @@ const Checkout = () => {
                 </CardContent>
               </Card>
             </TabsContent>
-            
+
             {/* Payment Tab */}
             <TabsContent value="payment" className="mt-6 space-y-6">
               <Card>
@@ -423,8 +423,8 @@ const Checkout = () => {
                   <CardDescription>Choose your preferred payment method</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <RadioGroup 
-                    value={paymentMethod} 
+                  <RadioGroup
+                    value={paymentMethod}
                     onValueChange={setPaymentMethod}
                     className="space-y-3"
                   >
@@ -437,33 +437,33 @@ const Checkout = () => {
                         <div className="grid gap-4 mt-3">
                           <div className="grid gap-2">
                             <Label htmlFor="name-on-card">Name on Card</Label>
-                            <Input 
-                              id="name-on-card" 
-                              placeholder="John Doe" 
+                            <Input
+                              id="name-on-card"
+                              placeholder="John Doe"
                               value={nameOnCard}
                               onChange={(e) => setNameOnCard(e.target.value)}
                               disabled={paymentMethod !== "credit-card"}
                             />
                           </div>
-                          
+
                           <div className="grid gap-2">
                             <Label htmlFor="card-number">Card Number</Label>
-                            <Input 
-                              id="card-number" 
-                              placeholder="4111 1111 1111 1111" 
+                            <Input
+                              id="card-number"
+                              placeholder="4111 1111 1111 1111"
                               value={cardNumber}
                               onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
                               maxLength={19}
                               disabled={paymentMethod !== "credit-card"}
                             />
                           </div>
-                          
+
                           <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
                               <Label htmlFor="expiry">Expiry Date</Label>
-                              <Input 
-                                id="expiry" 
-                                placeholder="MM/YY" 
+                              <Input
+                                id="expiry"
+                                placeholder="MM/YY"
                                 value={expiryDate}
                                 onChange={(e) => {
                                   const value = e.target.value.replace(/\D/g, '');
@@ -479,13 +479,13 @@ const Checkout = () => {
                                 disabled={paymentMethod !== "credit-card"}
                               />
                             </div>
-                            
+
                             <div className="grid gap-2">
                               <Label htmlFor="cvv">CVV</Label>
-                              <Input 
-                                id="cvv" 
-                                placeholder="123" 
-                                type="password" 
+                              <Input
+                                id="cvv"
+                                placeholder="123"
+                                type="password"
                                 value={cvv}
                                 onChange={(e) => {
                                   const value = e.target.value.replace(/\D/g, '');
@@ -498,11 +498,11 @@ const Checkout = () => {
                               />
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2 mt-1">
-                            <Checkbox 
-                              id="save-payment" 
-                              checked={savePayment} 
+                            <Checkbox
+                              id="save-payment"
+                              checked={savePayment}
                               onCheckedChange={(checked) => setSavePayment(!!checked)}
                               disabled={paymentMethod !== "credit-card"}
                             />
@@ -513,7 +513,7 @@ const Checkout = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-start space-x-3 border border-border/40 rounded-lg p-4">
                       <RadioGroupItem value="paypal" id="paypal" className="mt-1" disabled />
                       <div className="flex-1">
@@ -528,18 +528,18 @@ const Checkout = () => {
                   </RadioGroup>
                 </CardContent>
               </Card>
-              
+
               <div className="flex items-center p-4 bg-muted/30 rounded-lg">
                 <ShieldCheck className="h-5 w-5 text-muted-foreground mr-3" />
                 <p className="text-sm text-muted-foreground">
-                  Your payment information is secure and encrypted. We do not store your 
+                  Your payment information is secure and encrypted. We do not store your
                   full card details on our servers.
                 </p>
               </div>
             </TabsContent>
           </Tabs>
         </div>
-        
+
         {/* Order summary */}
         <div className="lg:w-1/3">
           <Card className="border border-border/40 bg-card/30 backdrop-blur-sm sticky top-20">
@@ -586,14 +586,14 @@ const Checkout = () => {
                     ))
                   )}
                 </div>
-                
+
                 <Separator />
-                
+
                 {/* Order totals */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
@@ -607,12 +607,12 @@ const Checkout = () => {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Tax (7%)</span>
-                    <span>${tax.toFixed(2)}</span>
+                    <span>₹{tax.toFixed(2)}</span>
                   </div>
                 </div>
-                
+
                 <Separator />
-                
+
                 <div className="flex justify-between font-medium">
                   <span>Total</span>
                   <span>${total.toFixed(2)}</span>
@@ -620,8 +620,8 @@ const Checkout = () => {
               </div>
             </CardContent>
             <CardFooter>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 size="lg"
                 onClick={placeOrder}
                 disabled={loading || processingOrder}
