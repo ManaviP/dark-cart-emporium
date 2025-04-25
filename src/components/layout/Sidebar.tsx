@@ -55,6 +55,11 @@ const Sidebar = ({ open, setOpen, userRole }: SidebarProps) => {
       icon: ShoppingBag
     },
     {
+      title: "Request Donation",
+      href: "/request-donation",
+      icon: Gift
+    },
+    {
       title: "Buyer Dashboard",
       href: "/dashboard",
       icon: BarChart3,
@@ -94,6 +99,12 @@ const Sidebar = ({ open, setOpen, userRole }: SidebarProps) => {
       title: "Product Tracking",
       href: "/seller/tracking",
       icon: LineChart,
+      roleRequired: ["seller"]
+    },
+    {
+      title: "Donation Requests",
+      href: "/seller/donation-requests",
+      icon: Gift,
       roleRequired: ["seller"]
     },
     {

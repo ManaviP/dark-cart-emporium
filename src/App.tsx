@@ -17,6 +17,7 @@ import Loading from "./components/shared/Loading";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ProductsList = lazy(() => import("./pages/ProductsList"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const RequestDonation = lazy(() => import("./pages/RequestDonation"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -32,6 +33,7 @@ const SellerDonateProduct = lazy(() => import("./pages/seller/DonateProduct"));
 const DonateProduct = lazy(() => import("./components/seller/DonateProduct"));
 const SellerOrders = lazy(() => import("./pages/seller/Orders"));
 const ProductTracking = lazy(() => import("./pages/seller/ProductTracking"));
+const DonationRequests = lazy(() => import("./pages/seller/DonationRequests"));
 const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/Users"));
 const AdminDonations = lazy(() => import("./pages/admin/Donations"));
@@ -70,6 +72,7 @@ const App = () => (
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="products" element={<ProductsList />} />
                   <Route path="products/:id" element={<ProductDetail />} />
+                  <Route path="request-donation" element={<RequestDonation />} />
                   <Route path="cart" element={<Cart />} />
                   <Route path="checkout" element={<Checkout />} />
                   <Route path="profile" element={<Profile />} />
@@ -85,6 +88,7 @@ const App = () => (
                     <Route path="products/donate" element={<DonateProduct />} />
                     <Route path="orders" element={<SellerOrders />} />
                     <Route path="tracking" element={<ProductTracking />} />
+                    <Route path="donation-requests" element={<DonationRequests />} />
                   </Route>
 
                   {/* Admin Routes */}

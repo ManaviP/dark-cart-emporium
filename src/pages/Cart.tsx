@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,81 +7,91 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Trash2, ShoppingCart, ChevronLeft, MinusCircle, PlusCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/auth-context";
-
-// Mock cart data
-const mockCartItems = [
-  {
-    id: 1,
-    productId: 1,
-    name: "Premium Headphones",
-    price: 159.99,
-    quantity: 1,
-    image: "https://placehold.co/300x300/1a1f2c/ffffff?text=Headphones",
-  },
-  {
-    id: 2,
-    productId: 3,
-    name: "Fantasy Novel",
-    price: 12.99,
-    quantity: 2,
-    image: "https://placehold.co/300x300/1a1f2c/ffffff?text=Book",
-  },
-  {
-    id: 3,
-    productId: 5,
-    name: "Denim Jacket",
-    price: 69.99,
-    quantity: 1,
-    image: "https://placehold.co/300x300/1a1f2c/ffffff?text=Jacket",
-  }
-];
+import { getCart, updateCartItem, removeFromCart, CartItem } from "@/services/cartService";
 
 const Cart = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
   const [promoDiscount, setPromoDiscount] = useState(0);
 
   // Calculate subtotal
-  const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
   const shipping = subtotal > 50 ? 0 : 5.99;
   const discount = promoApplied ? promoDiscount : 0;
   const total = subtotal + shipping - discount;
 
   // Load cart data
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      setCartItems(mockCartItems);
-      setLoading(false);
-    }, 500);
-  }, []);
+    const loadCart = async () => {
+      if (!user) {
+        navigate("/login");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const items = await getCart();
+        setCartItems(items);
+      } catch (error) {
+        console.error("Error loading cart:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load your cart",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCart();
+  }, [user, navigate, toast]);
 
   // Update quantity
-  const updateQuantity = (id: number, newQuantity: number) => {
+  const updateQuantity = async (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
 
-    const updatedCart = cartItems.map(item =>
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    );
-
-    setCartItems(updatedCart);
+    try {
+      const updatedItem = await updateCartItem(itemId, newQuantity);
+      if (updatedItem) {
+        setCartItems(items =>
+          items.map(item =>
+            item.id === itemId ? updatedItem : item
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error updating quantity:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update quantity",
+        variant: "destructive",
+      });
+    }
   };
 
   // Remove item
-  const removeItem = (id: number) => {
-    const updatedCart = cartItems.filter(item => item.id !== id);
-    setCartItems(updatedCart);
-
-    toast({
-      description: "Item removed from your cart",
-    });
+  const removeItem = async (itemId: number) => {
+    try {
+      await removeFromCart(itemId);
+      setCartItems(items => items.filter(item => item.id !== itemId));
+      toast({
+        description: "Item removed from your cart",
+      });
+    } catch (error) {
+      console.error("Error removing item:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove item",
+        variant: "destructive",
+      });
+    }
   };
 
   // Donation functionality removed for buyers
@@ -162,7 +171,7 @@ const Cart = () => {
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Cart items */}
-        <div className="lg:w-2/3 space-y-4">
+        <div className="lg:w-2/3">
           {loading ? (
             // Loading state
             <div className="space-y-4">
@@ -191,8 +200,8 @@ const Cart = () => {
                       <Link to={`/products/${item.productId}`} className="block">
                         <div className="w-full sm:w-20 h-20 rounded-md overflow-hidden">
                           <img
-                            src={item.image}
-                            alt={item.name}
+                            src={item.product.image}
+                            alt={item.product.name}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -200,7 +209,7 @@ const Cart = () => {
 
                       <div className="flex-1">
                         <Link to={`/products/${item.productId}`} className="hover:underline">
-                          <h3 className="font-medium line-clamp-1">{item.name}</h3>
+                          <h3 className="font-medium line-clamp-1">{item.product.name}</h3>
                         </Link>
                         <div className="flex items-center gap-3 mt-2">
                           <div className="flex items-center border border-border rounded-md">
@@ -239,7 +248,7 @@ const Cart = () => {
                       </div>
 
                       <div className="text-right font-medium">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ₹{(item.product.price * item.quantity).toFixed(2)}
                       </div>
                     </div>
                   </CardContent>
@@ -287,7 +296,7 @@ const Cart = () => {
               </div>
 
               {/* Promo code */}
-              <div className="mt-4 pt-4">
+              <div>
                 <label htmlFor="promo" className="text-sm font-medium mb-2 block">
                   Promo Code
                 </label>

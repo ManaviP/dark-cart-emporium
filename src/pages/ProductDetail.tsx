@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import { useAuth } from "@/context/auth-context";
 import { getProductById } from "@/services/productService";
 import { trackProductEvent, createSellerNotification } from "@/services/trackingService";
 import { Product } from "@/types/product";
+import { addToCart } from "@/services/cartService";
 
 // Mock product data (would come from API in real app)
 const mockProducts = [
@@ -172,6 +172,9 @@ const ProductDetail = () => {
     if (!product) return;
 
     try {
+      // Add to cart using cart service
+      await addToCart(product.id, quantity);
+
       // Track the cart event if product has a seller ID
       if (product.sellerId) {
         await trackProductEvent(
@@ -206,11 +209,11 @@ const ProductDetail = () => {
         description: `${quantity} × ${product.name} added to your cart`,
       });
     } catch (err) {
-      console.error('Error tracking cart event:', err);
-      // Still show success toast even if tracking fails
+      console.error('Error adding to cart:', err);
       toast({
-        title: "Added to cart",
-        description: `${quantity} × ${product.name} added to your cart`,
+        title: "Error",
+        description: "Failed to add item to cart",
+        variant: "destructive"
       });
     }
   };

@@ -35,6 +35,9 @@ import { getProducts } from "@/services/productService";
 import { trackProductEvent } from "@/services/trackingService";
 import { Product } from "@/types/product";
 import { useToast } from "@/hooks/use-toast";
+import { addToCart } from "@/services/cartService";
+import { createSellerNotification } from "@/services/notificationService";
+import { user } from "@/contexts/UserContext";
 
 const categories = [
   { value: "all", label: "All Categories" },
@@ -213,6 +216,65 @@ const ProductsList = () => {
       console.error('Error tracking product view:', err);
       // Still navigate even if tracking fails
       navigate(`/products/${product.id}`);
+    }
+  };
+
+  // Add to cart function
+  const handleAddToCart = async (product: Product) => {
+    if (!user) {
+      toast({
+        title: "Please login",
+        description: "You need to login to add items to your cart",
+        variant: "destructive"
+      });
+      navigate("/login");
+      return;
+    }
+
+    try {
+      // Add to cart using cart service
+      await addToCart(product.id, 1);
+
+      // Track the cart event if product has a seller ID
+      if (product.sellerId) {
+        await trackProductEvent(
+          product.id,
+          product.sellerId,
+          'cart',
+          {
+            productName: product.name,
+            quantity: 1,
+            value: product.price,
+            buyerId: user.id
+          }
+        );
+
+        // Create notification for seller
+        await createSellerNotification(
+          product.sellerId,
+          product.id,
+          'cart',
+          user.id,
+          {
+            productName: product.name,
+            quantity: 1,
+            value: product.price,
+            buyerName: user.name
+          }
+        );
+      }
+
+      toast({
+        title: "Added to cart",
+        description: `${product.name} added to your cart`,
+      });
+    } catch (err) {
+      console.error('Error adding to cart:', err);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart",
+        variant: "destructive"
+      });
     }
   };
 
@@ -603,7 +665,15 @@ const ProductsList = () => {
                   <div className="flex items-center justify-between">
                     <p className="font-bold text-lg">₹{product.price.toFixed(2)}</p>
                     <div>
-                      <Button size="icon" variant="outline">
+                      <Button 
+                        size="icon" 
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(product);
+                        }}
+                        disabled={!product.inStock}
+                      >
                         <ShoppingCart className="h-4 w-4" />
                       </Button>
                     </div>
@@ -643,7 +713,15 @@ const ProductsList = () => {
                   <div className="flex items-center justify-between">
                     <p className="font-bold text-base">₹{product.price.toFixed(2)}</p>
                     <div>
-                      <Button size="icon" variant="outline" className="h-8 w-8">
+                      <Button 
+                        size="icon" 
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToCart(product);
+                        }}
+                        disabled={!product.inStock}
+                      >
                         <ShoppingCart className="h-3.5 w-3.5" />
                       </Button>
                     </div>
