@@ -8,35 +8,35 @@
     /* Light theme values (not actively used since we're forcing dark mode) */
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
-    
+
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
-    
+
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    
+
     --primary: 263 85% 75%;
     --primary-foreground: 0 0% 98%;
-    
+
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
-    
+
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    
+
     --accent: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
-    
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    
+
     --success: 142 71% 45%;
     --success-foreground: 0 0% 98%;
-    
+
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
-    
+
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
@@ -51,45 +51,45 @@
 
   /* Dark theme (our default for this app) */
   .dark, :root {
-    --background: 263 16% 16%; /* Dark Purple */
+    --background: 160 16% 16%; /* Dark Green */
     --foreground: 0 0% 98%;
-    
-    --card: 260 15% 12%; /* Slightly darker than background */
+
+    --card: 160 15% 12%; /* Slightly darker than background */
     --card-foreground: 0 0% 98%;
-    
-    --popover: 260 15% 12%;
+
+    --popover: 160 15% 12%;
     --popover-foreground: 0 0% 98%;
-    
-    --primary: 263 85% 75%; /* Bright Purple */
+
+    --primary: 142 70% 65%; /* Bright Green */
     --primary-foreground: 0 0% 100%;
-    
-    --secondary: 263 30% 25%; /* Muted Purple */
+
+    --secondary: 160 30% 25%; /* Muted Green */
     --secondary-foreground: 0 0% 98%;
-    
-    --muted: 263 20% 20%;
+
+    --muted: 160 20% 20%;
     --muted-foreground: 240 5% 84%;
-    
-    --accent: 263 30% 30%;
+
+    --accent: 160 30% 30%;
     --accent-foreground: 0 0% 98%;
-    
+
     --destructive: 0 62.8% 40%;
     --destructive-foreground: 0 0% 98%;
-    
+
     --success: 142 71% 35%;
     --success-foreground: 0 0% 98%;
-    
-    --border: 263 20% 24%;
-    --input: 263 20% 24%;
-    --ring: 263 85% 75%;
-    
-    --sidebar-background: 263 20% 10%;
+
+    --border: 160 20% 24%;
+    --input: 160 20% 24%;
+    --ring: 142 70% 65%;
+
+    --sidebar-background: 160 20% 10%;
     --sidebar-foreground: 240 5% 90%;
-    --sidebar-primary: 263 85% 75%;
+    --sidebar-primary: 142 70% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 263 22% 18%;
+    --sidebar-accent: 160 22% 18%;
     --sidebar-accent-foreground: 240 5% 90%;
-    --sidebar-border: 263 22% 20%;
-    --sidebar-ring: 263 85% 75%;
+    --sidebar-border: 160 22% 20%;
+    --sidebar-ring: 142 70% 65%;
   }
 }
 

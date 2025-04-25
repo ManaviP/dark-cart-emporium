@@ -16,6 +16,7 @@ const mockProducts: Product[] = [
     inStock: true,
     quantity: 25,
     rating: 4.8,
+    sellerId: "mock-seller-id-1", // Mock seller ID
     specifications: [
       { name: "Brand", value: "AudioTech" },
       { name: "Connectivity", value: "Bluetooth 5.0" },
@@ -36,6 +37,7 @@ const mockProducts: Product[] = [
     inStock: true,
     quantity: 100,
     rating: 4.5,
+    sellerId: "mock-seller-id-1", // Mock seller ID
     specifications: [
       { name: "Origin", value: "Local Farms" },
       { name: "Type", value: "Honeycrisp" },
@@ -55,6 +57,7 @@ const mockProducts: Product[] = [
     inStock: true,
     quantity: 50,
     rating: 4.2,
+    sellerId: "mock-seller-id-2", // Mock seller ID
     specifications: [
       { name: "Author", value: "J.R. Tolkien" },
       { name: "Pages", value: "423" },
@@ -74,6 +77,7 @@ const mockProducts: Product[] = [
     inStock: true,
     quantity: 15,
     rating: 4.1,
+    sellerId: "mock-seller-id-2", // Mock seller ID
     specifications: [
       { name: "Material", value: "100% Cotton Denim" },
       { name: "Size", value: "Medium" },
@@ -85,195 +89,385 @@ const mockProducts: Product[] = [
 // Get all products
 export const getProducts = async (category?: string): Promise<Product[]> => {
   try {
-    let query = supabase
-      .from('products')
-      .select('*, product_specifications(*)');
+    console.log('Fetching products from Supabase...');
+    console.log('Category filter:', category);
 
-    if (category && category !== 'all') {
-      query = query.eq('category', category);
+    // Try to fetch from Supabase first
+    try {
+      let query = supabase
+        .from('products')
+        .select('*, product_specifications(*)');
+
+      if (category && category !== 'all') {
+        query = query.eq('category', category);
+      }
+
+      console.log('Executing Supabase query...');
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Supabase query error:', error);
+        throw error;
+      }
+
+      console.log('Products fetched successfully:', data ? data.length : 0, 'products found');
+
+      if (!data || data.length === 0) {
+        console.log('No products found in database, using mock data');
+
+        // Filter mock data if category is provided
+        if (category && category !== 'all') {
+          return mockProducts.filter(p => p.category.toLowerCase() === category.toLowerCase());
+        }
+        return mockProducts;
+      }
+
+      // Transform data to match Product interface
+      return data.map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        category: item.category,
+        image: item.image,
+        perishable: item.perishable,
+        expiryDate: item.expiry_date,
+        priority: item.priority,
+        company: item.company,
+        inStock: item.in_stock,
+        quantity: item.quantity,
+        rating: item.rating,
+        specifications: item.product_specifications,
+        sellerId: item.seller_id
+      }));
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      console.log('Using mock data due to database error');
+
+      // Filter mock data if category is provided
+      if (category && category !== 'all') {
+        return mockProducts.filter(p => p.category.toLowerCase() === category.toLowerCase());
+      }
+      return mockProducts;
     }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-
-    // Transform data to match Product interface
-    return data.map(item => ({
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      price: item.price,
-      category: item.category,
-      image: item.image,
-      perishable: item.perishable,
-      expiryDate: item.expiry_date,
-      priority: item.priority,
-      company: item.company,
-      inStock: item.in_stock,
-      quantity: item.quantity,
-      rating: item.rating,
-      specifications: item.product_specifications,
-      sellerId: item.seller_id
-    }));
   } catch (error) {
     console.error('Error fetching products:', error);
     // Fallback to mock data in development
-    if (process.env.NODE_ENV === 'development') {
-      return mockProducts;
+    console.log('Falling back to mock data');
+
+    // Filter mock data if category is provided
+    if (category && category !== 'all') {
+      return mockProducts.filter(p => p.category.toLowerCase() === category.toLowerCase());
     }
-    throw error;
+    return mockProducts;
   }
 };
 
 // Get all seller products
 export const getSellerProducts = async (): Promise<Product[]> => {
   try {
+    console.log('Fetching seller products...');
+
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('User not authenticated');
+    console.log('Current user ID:', userId);
 
-    const { data, error } = await supabase
-      .from('products')
-      .select('*, product_specifications(*)')
-      .eq('seller_id', userId);
+    if (!userId) {
+      console.log('User not authenticated, using mock data');
+      return mockProducts;
+    }
 
-    if (error) throw error;
+    // Try to fetch from Supabase first
+    try {
+      console.log('Querying Supabase for seller products...');
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, product_specifications(*)')
+        .eq('seller_id', userId);
 
-    // Transform data to match Product interface
-    return data.map(item => ({
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      price: item.price,
-      category: item.category,
-      image: item.image,
-      perishable: item.perishable,
-      expiryDate: item.expiry_date,
-      priority: item.priority,
-      company: item.company,
-      inStock: item.in_stock,
-      quantity: item.quantity,
-      rating: item.rating,
-      specifications: item.product_specifications,
-      sellerId: item.seller_id
-    }));
+      if (error) {
+        console.error('Supabase query error:', error);
+        throw error;
+      }
+
+      console.log('Seller products fetched successfully:', data ? data.length : 0, 'products found');
+
+      // If no products found, check if we have any mock products for this seller
+      if (!data || data.length === 0) {
+        console.log('No seller products found in database, checking mock data');
+
+        // First check if we have any mock products with this seller ID
+        const sellerMockProducts = mockProducts.filter(p => p.sellerId === userId);
+
+        if (sellerMockProducts.length > 0) {
+          console.log('Found', sellerMockProducts.length, 'mock products for this seller');
+          return sellerMockProducts;
+        }
+
+        // If no seller-specific mock products, return all mock products in development mode
+        console.log('No seller-specific mock products found, using all mock products');
+        return mockProducts;
+      }
+
+      // Transform data to match Product interface
+      return data.map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        category: item.category,
+        image: item.image,
+        perishable: item.perishable,
+        expiryDate: item.expiry_date,
+        priority: item.priority,
+        company: item.company,
+        inStock: item.in_stock,
+        quantity: item.quantity,
+        rating: item.rating,
+        specifications: item.product_specifications,
+        sellerId: item.seller_id
+      }));
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      console.log('Using mock data due to database error');
+
+      // First check if we have any mock products with this seller ID
+      const sellerMockProducts = mockProducts.filter(p => p.sellerId === userId);
+
+      if (sellerMockProducts.length > 0) {
+        console.log('Found', sellerMockProducts.length, 'mock products for this seller');
+        return sellerMockProducts;
+      }
+
+      // If no seller-specific mock products, return all mock products
+      return mockProducts;
+    }
   } catch (error) {
     console.error('Error fetching seller products:', error);
     // Fallback to mock data in development
-    if (process.env.NODE_ENV === 'development') {
-      return mockProducts;
-    }
-    throw error;
+    console.log('Falling back to mock data');
+    return mockProducts;
   }
 };
 
 // Get a single product by ID
 export const getProductById = async (id: number): Promise<Product | null> => {
   try {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*, product_specifications(*)')
-      .eq('id', id)
-      .single();
+    console.log('Fetching product by ID:', id);
 
-    if (error) throw error;
-    if (!data) return null;
+    // Try to fetch from Supabase first
+    try {
+      console.log('Querying Supabase for product...');
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, product_specifications(*)')
+        .eq('id', id)
+        .single();
 
-    // Transform data to match Product interface
-    return {
-      id: data.id,
-      name: data.name,
-      description: data.description,
-      price: data.price,
-      category: data.category,
-      image: data.image,
-      perishable: data.perishable,
-      expiryDate: data.expiry_date,
-      priority: data.priority,
-      company: data.company,
-      inStock: data.in_stock,
-      quantity: data.quantity,
-      rating: data.rating,
-      specifications: data.product_specifications,
-      sellerId: data.seller_id
-    };
+      if (error) {
+        console.error('Supabase query error:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.log('Product not found in database, checking mock data');
+        const mockProduct = mockProducts.find(p => p.id === id);
+        if (!mockProduct) {
+          console.log('Product not found in mock data either');
+          return null;
+        }
+        console.log('Product found in mock data:', mockProduct.name);
+        return mockProduct;
+      }
+
+      console.log('Product found in database:', data.name);
+
+      // Transform data to match Product interface
+      return {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        category: data.category,
+        image: data.image,
+        perishable: data.perishable,
+        expiryDate: data.expiry_date,
+        priority: data.priority,
+        company: data.company,
+        inStock: data.in_stock,
+        quantity: data.quantity,
+        rating: data.rating,
+        specifications: data.product_specifications,
+        sellerId: data.seller_id
+      };
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      console.log('Using mock data due to database error');
+
+      // Check mock data
+      const mockProduct = mockProducts.find(p => p.id === id);
+      if (!mockProduct) {
+        console.log('Product not found in mock data');
+        return null;
+      }
+      console.log('Product found in mock data:', mockProduct.name);
+      return mockProduct;
+    }
   } catch (error) {
     console.error('Error fetching product:', error);
     // Fallback to mock data in development
-    if (process.env.NODE_ENV === 'development') {
-      return mockProducts.find(p => p.id === id) || null;
-    }
-    throw error;
+    console.log('Falling back to mock data');
+    return mockProducts.find(p => p.id === id) || null;
   }
 };
 
 // Add a new product
 export const addProduct = async (product: Omit<Product, 'id'>): Promise<Product> => {
   try {
-    const userId = await getCurrentUserId();
-    if (!userId) throw new Error('User not authenticated');
+    console.log('Adding new product:', product);
 
-    // Insert product
-    const { data, error } = await supabase
-      .from('products')
-      .insert([
-        {
+    // Get current user ID
+    const userId = await getCurrentUserId();
+    console.log('Current user ID:', userId);
+
+    if (!userId) {
+      console.log('User not authenticated, creating mock product');
+      // In development mode, create a mock product with a generated ID
+      if (process.env.NODE_ENV === 'development') {
+        const mockId = Date.now();
+        const mockProduct: Product = {
+          id: mockId,
           name: product.name,
           description: product.description,
           price: product.price,
           category: product.category,
           image: product.image,
           perishable: product.perishable,
-          expiry_date: product.expiryDate,
+          expiryDate: product.expiryDate,
           priority: product.priority,
           company: product.company,
-          in_stock: product.inStock,
+          inStock: product.inStock,
           quantity: product.quantity,
-          seller_id: userId,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ])
-      .select()
-      .single();
+          rating: 0,
+          specifications: product.specifications || [],
+          sellerId: 'mock-seller-id'
+        };
 
-    if (error) throw error;
+        // Add to mock products array for immediate use
+        mockProducts.push(mockProduct);
+        console.log('Created mock product with ID:', mockId);
 
-    // Insert specifications if any
-    if (product.specifications && product.specifications.length > 0) {
-      const specs = product.specifications.map(spec => ({
-        product_id: data.id,
-        name: spec.name,
-        value: spec.value,
-        created_at: new Date().toISOString(),
-      }));
-
-      const { error: specsError } = await supabase
-        .from('product_specifications')
-        .insert(specs);
-
-      if (specsError) {
-        console.error('Error adding product specifications:', specsError);
+        return mockProduct;
       }
+
+      throw new Error('User not authenticated');
     }
 
-    // Return the new product
-    return {
-      id: data.id,
-      name: data.name,
-      description: data.description,
-      price: data.price,
-      category: data.category,
-      image: data.image,
-      perishable: data.perishable,
-      expiryDate: data.expiry_date,
-      priority: data.priority,
-      company: data.company,
-      inStock: data.in_stock,
-      quantity: data.quantity,
-      rating: data.rating,
-      specifications: product.specifications || [],
-      sellerId: data.seller_id
-    };
+    // Try to insert product into Supabase
+    console.log('Inserting product into Supabase...');
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .insert([
+          {
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            category: product.category,
+            image: product.image,
+            perishable: product.perishable,
+            expiry_date: product.expiryDate,
+            priority: product.priority,
+            company: product.company,
+            in_stock: product.inStock,
+            quantity: product.quantity,
+            seller_id: userId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw error;
+      }
+
+      console.log('Product inserted successfully:', data);
+
+      // Insert specifications if any
+      if (product.specifications && product.specifications.length > 0) {
+        console.log('Inserting product specifications...');
+        const specs = product.specifications.map(spec => ({
+          product_id: data.id,
+          name: spec.name,
+          value: spec.value,
+          created_at: new Date().toISOString(),
+        }));
+
+        const { error: specsError } = await supabase
+          .from('product_specifications')
+          .insert(specs);
+
+        if (specsError) {
+          console.error('Error adding product specifications:', specsError);
+        } else {
+          console.log('Product specifications added successfully');
+        }
+      }
+
+      // Return the new product
+      return {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        category: data.category,
+        image: data.image,
+        perishable: data.perishable,
+        expiryDate: data.expiry_date,
+        priority: data.priority,
+        company: data.company,
+        inStock: data.in_stock,
+        quantity: data.quantity,
+        rating: data.rating || 0,
+        specifications: product.specifications || [],
+        sellerId: data.seller_id
+      };
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+
+      // In development mode, create a mock product as fallback
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Falling back to mock product in development mode');
+        const mockId = Date.now();
+        const mockProduct: Product = {
+          id: mockId,
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          category: product.category,
+          image: product.image,
+          perishable: product.perishable,
+          expiryDate: product.expiryDate,
+          priority: product.priority,
+          company: product.company,
+          inStock: product.inStock,
+          quantity: product.quantity,
+          rating: 0,
+          specifications: product.specifications || [],
+          sellerId: userId
+        };
+
+        // Add to mock products array for immediate use
+        mockProducts.push(mockProduct);
+        console.log('Created mock product with ID:', mockId);
+
+        return mockProduct;
+      }
+
+      throw dbError;
+    }
   } catch (error) {
     console.error('Error adding product:', error);
     throw error;

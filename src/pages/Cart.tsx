@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, Trash2, Gift, ShoppingCart, ChevronLeft, MinusCircle, PlusCircle } from "lucide-react";
+import { ArrowRight, Trash2, ShoppingCart, ChevronLeft, MinusCircle, PlusCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/auth-context";
 
@@ -85,20 +85,7 @@ const Cart = () => {
     });
   };
 
-  // Donate item
-  const donateItem = (id: number) => {
-    const item = cartItems.find(item => item.id === id);
-
-    if (item) {
-      toast({
-        title: "Thank you for your donation!",
-        description: `${item.quantity} × ${item.name} has been donated.`,
-      });
-
-      // Remove from cart
-      removeItem(id);
-    }
-  };
+  // Donation functionality removed for buyers
 
   // Apply promo code
   const applyPromoCode = () => {
@@ -247,16 +234,6 @@ const Cart = () => {
                           >
                             <Trash2 className="h-4 w-4 mr-1" />
                             <span className="text-xs">Remove</span>
-                          </Button>
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-2 text-primary"
-                            onClick={() => donateItem(item.id)}
-                          >
-                            <Gift className="h-4 w-4 mr-1" />
-                            <span className="text-xs">Donate</span>
                           </Button>
                         </div>
                       </div>

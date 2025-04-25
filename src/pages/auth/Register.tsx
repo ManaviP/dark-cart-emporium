@@ -1,6 +1,7 @@
 
 import { useState } from "react";
-import { useAuth, UserRole } from "@/context/auth-context";
+import { useAuth } from "@/context/auth-context";
+import { UserRole } from "@/types/supabase";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,17 +21,32 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("buyer");
+  const [role, setRole] = useState<UserRole | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [roleError, setRoleError] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Reset role error state
+    setRoleError(false);
 
     if (!name || !email || !password || !confirmPassword) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate role selection
+    if (!role) {
+      setRoleError(true);
+      toast({
+        title: "Error",
+        description: "Please select an account type",
         variant: "destructive",
       });
       return;
@@ -48,14 +64,24 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const result = await register(email, password, name, role);
+      // We can safely assert role is not null here because we validated it above
+      const result = await register(email, password, name, role as UserRole);
       toast({
         description: "Account created successfully!",
       });
 
       // If email confirmation is required, let the user know
       if (result) {
-        navigate("/");
+        // Navigate based on role
+        if (role === 'seller') {
+          navigate("/seller");
+        } else if (role === 'admin') {
+          navigate("/admin");
+        } else if (role === 'logistics') {
+          navigate("/logistics");
+        } else {
+          navigate("/dashboard");
+        }
       }
     } catch (error: any) {
       toast({
@@ -152,11 +178,14 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Account Type</Label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex justify-between items-center">
+                  <Label className={roleError ? 'text-destructive' : ''}>Account Type <span className="text-destructive">*</span></Label>
+                  {roleError && <span className="text-xs text-destructive">Please select an account type</span>}
+                </div>
+                <div className={`grid grid-cols-3 gap-2 ${roleError ? 'border-2 border-destructive rounded-md p-1' : ''}`}>
                   <label
                     htmlFor="buyer"
-                    className={`flex flex-col items-center justify-between rounded-md border-2 ${role === 'buyer' ? 'border-primary' : 'border-muted'} bg-muted/30 p-4 hover:bg-muted/40 cursor-pointer`}
+                    className={`flex flex-col items-center justify-between rounded-md border-2 ${role === 'buyer' ? 'border-primary' : roleError ? 'border-destructive/50' : 'border-muted'} bg-muted/30 p-4 hover:bg-muted/40 cursor-pointer`}
                   >
                     <input
                       type="radio"
@@ -164,9 +193,13 @@ const Register = () => {
                       id="buyer"
                       value="buyer"
                       checked={role === 'buyer'}
-                      onChange={() => setRole('buyer')}
+                      onChange={() => {
+                        setRole('buyer');
+                        setRoleError(false);
+                      }}
                       className="sr-only"
                       aria-label="Buyer role"
+                      required
                     />
                     <span className="font-medium">Buyer</span>
                     <span className="text-xs text-muted-foreground">
@@ -175,7 +208,7 @@ const Register = () => {
                   </label>
                   <label
                     htmlFor="seller"
-                    className={`flex flex-col items-center justify-between rounded-md border-2 ${role === 'seller' ? 'border-primary' : 'border-muted'} bg-muted/30 p-4 hover:bg-muted/40 cursor-pointer`}
+                    className={`flex flex-col items-center justify-between rounded-md border-2 ${role === 'seller' ? 'border-primary' : roleError ? 'border-destructive/50' : 'border-muted'} bg-muted/30 p-4 hover:bg-muted/40 cursor-pointer`}
                   >
                     <input
                       type="radio"
@@ -183,9 +216,13 @@ const Register = () => {
                       id="seller"
                       value="seller"
                       checked={role === 'seller'}
-                      onChange={() => setRole('seller')}
+                      onChange={() => {
+                        setRole('seller');
+                        setRoleError(false);
+                      }}
                       className="sr-only"
                       aria-label="Seller role"
+                      required
                     />
                     <span className="font-medium">Seller</span>
                     <span className="text-xs text-muted-foreground">
@@ -194,7 +231,7 @@ const Register = () => {
                   </label>
                   <label
                     htmlFor="logistics"
-                    className={`flex flex-col items-center justify-between rounded-md border-2 ${role === 'logistics' ? 'border-primary' : 'border-muted'} bg-muted/30 p-4 hover:bg-muted/40 cursor-pointer`}
+                    className={`flex flex-col items-center justify-between rounded-md border-2 ${role === 'logistics' ? 'border-primary' : roleError ? 'border-destructive/50' : 'border-muted'} bg-muted/30 p-4 hover:bg-muted/40 cursor-pointer`}
                   >
                     <input
                       type="radio"
@@ -202,9 +239,13 @@ const Register = () => {
                       id="logistics"
                       value="logistics"
                       checked={role === 'logistics'}
-                      onChange={() => setRole('logistics')}
+                      onChange={() => {
+                        setRole('logistics');
+                        setRoleError(false);
+                      }}
                       className="sr-only"
                       aria-label="Logistics role"
+                      required
                     />
                     <span className="font-medium">Logistics</span>
                     <span className="text-xs text-muted-foreground">

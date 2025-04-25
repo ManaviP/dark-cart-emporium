@@ -11,60 +11,147 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Check if we have a session already
+        // Get current session
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session) {
-          // We already have a session, redirect to home
-          toast({
-            description: "Successfully logged in!",
-          });
-          navigate("/");
+          toast({ description: "Successfully logged in!" });
+
+          const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", session.user.id)
+            .single();
+
+          if (profileError || !profile) {
+            console.error("Profile fetch error:", profileError);
+            setError("Could not fetch user profile.");
+            return;
+          }
+
+          const role = profile.role;
+          console.log("User role from database:", role);
+
+          // Store the user role in localStorage for future use
+          try {
+            const userDataString = JSON.stringify({
+              id: session.user.id,
+              email: session.user.email,
+              role: role
+            });
+            localStorage.setItem('dark-cart-user', userDataString);
+            sessionStorage.setItem('dark-cart-user', userDataString);
+            console.log('Stored user data in localStorage and sessionStorage with role:', role);
+          } catch (storageErr) {
+            console.error('Error storing user data:', storageErr);
+          }
+
+          // Redirect based on role
+          switch (role) {
+            case "buyer":
+              navigate("/dashboard");
+              console.log('Redirecting to buyer dashboard');
+              break;
+            case "seller":
+              navigate("/seller");
+              console.log('Redirecting to seller dashboard');
+              break;
+            case "admin":
+              navigate("/admin");
+              console.log('Redirecting to admin dashboard');
+              break;
+            case "logistics":
+              navigate("/logistics");
+              console.log('Redirecting to logistics dashboard');
+              break;
+            default:
+              navigate("/");
+              console.log('Redirecting to home page (default)');
+              break;
+          }
+
           return;
         }
 
-        // Get the auth code from the URL
+        // Manual token set fallback
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get("access_token");
         const refreshToken = hashParams.get("refresh_token");
 
         if (!accessToken) {
-          // If no access token, check for error
           const queryParams = new URLSearchParams(window.location.search);
           const errorDescription = queryParams.get("error_description");
-          const errorCode = queryParams.get("error");
-
-          if (errorDescription) {
-            console.error(`Auth error: ${errorCode} - ${errorDescription}`);
-            setError(errorDescription);
-            return;
-          }
-
-          // No token and no error, something went wrong
-          setError("Authentication failed. Please try again.");
+          setError(errorDescription || "Authentication failed.");
           return;
         }
 
-        // Exchange the token for a session
-        const { data, error } = await supabase.auth.setSession({
+        const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken || "",
         });
 
-        if (error) {
-          console.error("Session error:", error);
-          setError(error.message);
+        if (sessionError) {
+          setError(sessionError.message);
           return;
         }
 
-        // Success! Redirect to home page
-        toast({
-          description: "Successfully logged in!",
-        });
-        navigate("/");
+        toast({ description: "Successfully logged in!" });
+
+        // Repeat role fetch for newly set session
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.session.user.id)
+          .single();
+
+        if (profileError || !profile) {
+          console.error("Profile fetch error:", profileError);
+          setError("Could not fetch user profile.");
+          return;
+        }
+
+        const role = profile.role;
+        console.log("User role from database (after token set):", role);
+
+        // Store the user role in localStorage for future use
+        try {
+          const userDataString = JSON.stringify({
+            id: data.session.user.id,
+            email: data.session.user.email,
+            role: role
+          });
+          localStorage.setItem('dark-cart-user', userDataString);
+          sessionStorage.setItem('dark-cart-user', userDataString);
+          console.log('Stored user data in localStorage and sessionStorage');
+        } catch (storageErr) {
+          console.error('Error storing user data:', storageErr);
+        }
+
+        switch (role) {
+          case "buyer":
+            navigate("/dashboard");
+            console.log('Redirecting to buyer dashboard');
+            break;
+          case "seller":
+            navigate("/seller");
+            console.log('Redirecting to seller dashboard');
+            break;
+          case "admin":
+            navigate("/admin");
+            console.log('Redirecting to admin dashboard');
+            break;
+          case "logistics":
+            navigate("/logistics");
+            console.log('Redirecting to logistics dashboard');
+            break;
+          default:
+            navigate("/");
+            console.log('Redirecting to home page (default)');
+        }
+
       } catch (err) {
         console.error("Auth callback error:", err);
-        setError("An unexpected error occurred. Please try again.");
+        setError("Unexpected error. Try again.");
       }
     };
 

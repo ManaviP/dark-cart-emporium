@@ -68,16 +68,16 @@ export default {
 				},
 				// Custom colors for our shopping app
 				dark: {
-					100: '#403E43', // Charcoal Gray
-					200: '#221F26', // Dark Charcoal 
-					300: '#1A1F2C', // Dark Purple
-					900: '#0F1117', // Dark Black
+					100: '#3E4340', // Charcoal Gray with green tint
+					200: '#1F2621', // Dark Charcoal with green tint
+					300: '#1A2C1F', // Dark Green
+					900: '#0F1711', // Dark Black with green tint
 				},
-				purple: {
-					300: '#D6BCFA', // Light Purple
-					500: '#9b87f5', // Primary Purple 
-					700: '#7E69AB', // Secondary Purple
-					900: '#6E59A5', // Tertiary Purple
+				green: {
+					300: '#BCFAD6', // Light Green
+					500: '#4AD890', // Primary Green
+					700: '#2E8A57', // Secondary Green
+					900: '#1E5E3A', // Tertiary Green
 				}
 			},
 			borderRadius: {

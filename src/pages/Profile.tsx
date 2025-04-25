@@ -56,11 +56,11 @@ type AddressFormValues = z.infer<typeof addressFormSchema>;
 const Profile = () => {
   const { user, updateProfile, addAddress, updateAddress, deleteAddress, setDefaultAddress } = useAuth();
   const { toast } = useToast();
-  
+
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
-  
+
   // Profile form
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -69,7 +69,7 @@ const Profile = () => {
       phone: user?.phone || "",
     },
   });
-  
+
   // Address form
   const addressForm = useForm<AddressFormValues>({
     resolver: zodResolver(addressFormSchema),
@@ -84,7 +84,7 @@ const Profile = () => {
       is_default: false,
     },
   });
-  
+
   // Handle profile update
   const onProfileSubmit = async (data: ProfileFormValues) => {
     try {
@@ -92,9 +92,9 @@ const Profile = () => {
         name: data.name,
         phone: data.phone,
       });
-      
+
       setIsEditingProfile(false);
-      
+
       toast({
         description: "Profile updated successfully",
       });
@@ -106,7 +106,7 @@ const Profile = () => {
       });
     }
   };
-  
+
   // Handle address submission (add/edit)
   const onAddressSubmit = async (data: AddressFormValues) => {
     try {
@@ -114,7 +114,7 @@ const Profile = () => {
         // Update existing address
         await updateAddress(editingAddress.id, data);
         setEditingAddress(null);
-        
+
         toast({
           description: "Address updated successfully",
         });
@@ -131,12 +131,12 @@ const Profile = () => {
         is_default: data.is_default
       });
         setIsAddingAddress(false);
-        
+
         toast({
           description: "Address added successfully",
         });
       }
-      
+
       // Reset form
       addressForm.reset();
     } catch (error) {
@@ -147,7 +147,7 @@ const Profile = () => {
       });
     }
   };
-  
+
   // Initialize edit address form
   const handleEditAddress = (address: Address) => {
     addressForm.reset({
@@ -162,12 +162,12 @@ const Profile = () => {
     });
     setEditingAddress(address);
   };
-  
+
   // Handle address deletion
   const handleDeleteAddress = async (id: string) => {
     try {
       await deleteAddress(id);
-      
+
       toast({
         description: "Address deleted successfully",
       });
@@ -179,12 +179,12 @@ const Profile = () => {
       });
     }
   };
-  
+
   // Handle setting default address
   const handleSetDefaultAddress = async (id: string) => {
     try {
       await setDefaultAddress(id);
-      
+
       toast({
         description: "Default address updated",
       });
@@ -196,7 +196,7 @@ const Profile = () => {
       });
     }
   };
-  
+
   // Function to get initials from name
   const getInitials = (name: string) => {
     return name
@@ -206,7 +206,7 @@ const Profile = () => {
       .toUpperCase()
       .substring(0, 2);
   };
-  
+
   if (!user) {
     return null; // User should be redirected to login
   }
@@ -234,7 +234,7 @@ const Profile = () => {
           <CardContent>
             {isEditingProfile ? (
               <Form {...profileForm}>
-                <form 
+                <form
                   onSubmit={profileForm.handleSubmit(onProfileSubmit)}
                   className="space-y-4"
                 >
@@ -251,7 +251,7 @@ const Profile = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="flex items-center p-3 bg-muted/50 rounded-md">
                     <Mail className="h-5 w-5 text-muted-foreground mr-3" />
                     <div>
@@ -259,7 +259,7 @@ const Profile = () => {
                       <p className="font-medium">{user.email}</p>
                     </div>
                   </div>
-                  
+
                   <FormField
                     control={profileForm.control}
                     name="phone"
@@ -276,10 +276,10 @@ const Profile = () => {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="flex justify-end space-x-3 pt-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={() => {
                         setIsEditingProfile(false);
                         profileForm.reset({
@@ -321,20 +321,29 @@ const Profile = () => {
                       )}
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setIsEditingProfile(true)}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsEditingProfile(true)}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => window.location.href = "/profile/edit"}
+                    >
+                      Change Account Type
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
-        
+
         {/* Addresses Card */}
         <Card className="border border-border/40 bg-card/30 backdrop-blur-sm">
           <CardHeader className="pb-3">
@@ -345,8 +354,8 @@ const Profile = () => {
                   Manage your shipping addresses
                 </CardDescription>
               </div>
-              <Dialog 
-                open={isAddingAddress} 
+              <Dialog
+                open={isAddingAddress}
                 onOpenChange={setIsAddingAddress}
               >
                 <DialogTrigger asChild>
@@ -363,7 +372,7 @@ const Profile = () => {
                     </DialogDescription>
                   </DialogHeader>
                   <Form {...addressForm}>
-                    <form 
+                    <form
                       onSubmit={addressForm.handleSubmit(onAddressSubmit)}
                       className="space-y-4 py-4"
                     >
@@ -380,7 +389,7 @@ const Profile = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={addressForm.control}
                         name="line1"
@@ -394,7 +403,7 @@ const Profile = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={addressForm.control}
                         name="line2"
@@ -408,7 +417,7 @@ const Profile = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={addressForm.control}
@@ -423,7 +432,7 @@ const Profile = () => {
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={addressForm.control}
                           name="state"
@@ -438,7 +447,7 @@ const Profile = () => {
                           )}
                         />
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={addressForm.control}
@@ -453,7 +462,7 @@ const Profile = () => {
                             </FormItem>
                           )}
                         />
-                        
+
                         <FormField
                           control={addressForm.control}
                           name="country"
@@ -468,7 +477,7 @@ const Profile = () => {
                           )}
                         />
                       </div>
-                      
+
                       <FormField
                         control={addressForm.control}
                         name="is_default"
@@ -493,10 +502,10 @@ const Profile = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <DialogFooter>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           onClick={() => {
                             setIsAddingAddress(false);
                             addressForm.reset();
@@ -555,15 +564,15 @@ const Profile = () => {
                         </p>
                       </div>
                       <div className="flex gap-2">
-                        <Dialog 
-                          open={editingAddress?.id === address.id} 
+                        <Dialog
+                          open={editingAddress?.id === address.id}
                           onOpenChange={(open) => {
                             if (!open) setEditingAddress(null);
                           }}
                         >
                           <DialogTrigger asChild>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="icon"
                               onClick={() => handleEditAddress(address)}
                             >
@@ -578,7 +587,7 @@ const Profile = () => {
                               </DialogDescription>
                             </DialogHeader>
                             <Form {...addressForm}>
-                              <form 
+                              <form
                                 onSubmit={addressForm.handleSubmit(onAddressSubmit)}
                                 className="space-y-4 py-4"
                               >
@@ -595,7 +604,7 @@ const Profile = () => {
                                     </FormItem>
                                   )}
                                 />
-                                
+
                                 <FormField
                                   control={addressForm.control}
                                   name="line1"
@@ -609,7 +618,7 @@ const Profile = () => {
                                     </FormItem>
                                   )}
                                 />
-                                
+
                                 <FormField
                                   control={addressForm.control}
                                   name="line2"
@@ -623,7 +632,7 @@ const Profile = () => {
                                     </FormItem>
                                   )}
                                 />
-                                
+
                                 <div className="grid grid-cols-2 gap-4">
                                   <FormField
                                     control={addressForm.control}
@@ -638,7 +647,7 @@ const Profile = () => {
                                       </FormItem>
                                     )}
                                   />
-                                  
+
                                   <FormField
                                     control={addressForm.control}
                                     name="state"
@@ -653,7 +662,7 @@ const Profile = () => {
                                     )}
                                   />
                                 </div>
-                                
+
                                 <div className="grid grid-cols-2 gap-4">
                                   <FormField
                                     control={addressForm.control}
@@ -668,7 +677,7 @@ const Profile = () => {
                                       </FormItem>
                                     )}
                                   />
-                                  
+
                                   <FormField
                                     control={addressForm.control}
                                     name="country"
@@ -683,7 +692,7 @@ const Profile = () => {
                                     )}
                                   />
                                 </div>
-                                
+
                                 <FormField
                                   control={addressForm.control}
                                   name="is_default"
@@ -708,10 +717,10 @@ const Profile = () => {
                                     </FormItem>
                                   )}
                                 />
-                                
+
                                 <DialogFooter>
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     onClick={() => setEditingAddress(null)}
                                   >
                                     Cancel
@@ -722,19 +731,19 @@ const Profile = () => {
                             </Form>
                           </DialogContent>
                         </Dialog>
-                        
+
                         {!address.is_default && (
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="icon"
                             onClick={() => handleSetDefaultAddress(address.id)}
                           >
                             <CheckCircle className="h-4 w-4" />
                           </Button>
                         )}
-                        
-                        <Button 
-                          variant="ghost" 
+
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={() => handleDeleteAddress(address.id)}
                         >

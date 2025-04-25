@@ -1,0 +1,41 @@
+  // Update profile
+  const updateProfile = async (data: Partial<UserProfile>) => {
+    if (!user) throw new Error("Not authenticated");
+
+    try {
+      // Update profile in Supabase
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+      
+      // Only include fields that are provided
+      if (data.name) updateData.name = data.name;
+      if (data.phone !== undefined) updateData.phone = data.phone;
+      if (data.avatar_url !== undefined) updateData.avatar_url = data.avatar_url;
+      if (data.role) updateData.role = data.role;
+      
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      const updatedUser = { ...user, ...data };
+      setUser(updatedUser);
+      
+      // Update the user data in localStorage and sessionStorage
+      try {
+        const userDataString = JSON.stringify(updatedUser);
+        localStorage.setItem('dark-cart-user', userDataString);
+        sessionStorage.setItem('dark-cart-user', userDataString);
+        console.log('Stored updated user profile in localStorage and sessionStorage');
+      } catch (storageErr) {
+        console.error('Error storing updated user profile:', storageErr);
+      }
+    } catch (err: any) {
+      setError(err.message || "Profile update failed");
+      throw err;
+    }
+  };

@@ -11,11 +11,18 @@ import {
   Heart,
   Truck,
   BarChart3,
+  BarChart2,
   Gift,
   Settings,
   X,
   Home,
-  SlidersHorizontal
+  SlidersHorizontal,
+  LineChart,
+  Eye,
+  CreditCard,
+  Bell,
+  Shield,
+  FileText
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -55,7 +62,7 @@ const Sidebar = ({ open, setOpen, userRole }: SidebarProps) => {
     },
     {
       title: "My Orders",
-      href: "/dashboard",
+      href: "/dashboard/orders",
       icon: Package,
       roleRequired: ["buyer"]
     },
@@ -84,21 +91,81 @@ const Sidebar = ({ open, setOpen, userRole }: SidebarProps) => {
       roleRequired: ["seller"]
     },
     {
+      title: "Product Tracking",
+      href: "/seller/tracking",
+      icon: LineChart,
+      roleRequired: ["seller"]
+    },
+    {
       title: "Admin Dashboard",
       href: "/admin",
       icon: BarChart3,
       roleRequired: ["admin"]
     },
     {
-      title: "Manage Users",
+      title: "User Management",
       href: "/admin/users",
       icon: Users,
+      roleRequired: ["admin"]
+    },
+    {
+      title: "Product Management",
+      href: "/admin/products",
+      icon: ShoppingBag,
+      roleRequired: ["admin"]
+    },
+    {
+      title: "Order Management",
+      href: "/admin/orders",
+      icon: Package,
       roleRequired: ["admin"]
     },
     {
       title: "Donations Management",
       href: "/admin/donations",
       icon: Gift,
+      roleRequired: ["admin"]
+    },
+    {
+      title: "Analytics",
+      href: "/admin/analytics",
+      icon: BarChart2,
+      roleRequired: ["admin"]
+    },
+    {
+      title: "Payments",
+      href: "/admin/payments",
+      icon: CreditCard,
+      roleRequired: ["admin"]
+    },
+    {
+      title: "Notifications",
+      href: "/admin/notifications",
+      icon: Bell,
+      roleRequired: ["admin"]
+    },
+    {
+      title: "Security",
+      href: "/admin/security",
+      icon: Shield,
+      roleRequired: ["admin"]
+    },
+    {
+      title: "Site Settings",
+      href: "/admin/settings",
+      icon: Settings,
+      roleRequired: ["admin"]
+    },
+    {
+      title: "Content Management",
+      href: "/admin/content",
+      icon: FileText,
+      roleRequired: ["admin"]
+    },
+    {
+      title: "Reports",
+      href: "/admin/reports",
+      icon: FileText,
       roleRequired: ["admin"]
     },
     {

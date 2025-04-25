@@ -8,9 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ShoppingCart, Gift, Heart, ArrowLeft, Truck, Clock, Star } from "lucide-react";
+import { ShoppingCart, Gift, Heart, ArrowLeft, Truck, Clock, Star, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/auth-context";
+import { getProductById } from "@/services/productService";
+import { trackProductEvent, createSellerNotification } from "@/services/trackingService";
+import { Product } from "@/types/product";
 
 // Mock product data (would come from API in real app)
 const mockProducts = [
@@ -82,26 +85,69 @@ const mockProducts = [
 const ProductDetail = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const isDonate = searchParams.get("donate") === "true";
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("description");
 
-  // Get product details
+  // Get product details from Supabase
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      const foundProduct = mockProducts.find(p => p.id === Number(id));
-      setProduct(foundProduct || null);
-      setLoading(false);
-    }, 500);
-  }, [id]);
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        if (!id) {
+          setError("Product ID is missing");
+          return;
+        }
+
+        const productId = parseInt(id);
+        const fetchedProduct = await getProductById(productId);
+
+        if (!fetchedProduct) {
+          setError("Product not found");
+          return;
+        }
+
+        setProduct(fetchedProduct);
+
+        // Track product view if it has a seller ID
+        if (fetchedProduct.sellerId) {
+          try {
+            await trackProductEvent(
+              fetchedProduct.id,
+              fetchedProduct.sellerId,
+              'view',
+              {
+                productName: fetchedProduct.name
+              }
+            );
+          } catch (trackError) {
+            console.error('Error tracking product view:', trackError);
+            // Don't set error state here, as we still want to show the product
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setError("Failed to load product details. Please try again later.");
+        toast({
+          title: "Error",
+          description: "Failed to load product details. Please try again later.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id, toast]);
 
   // Handle quantity change
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,7 +158,7 @@ const ProductDetail = () => {
   };
 
   // Add to cart function
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!user) {
       toast({
         title: "Please login",
@@ -123,29 +169,53 @@ const ProductDetail = () => {
       return;
     }
 
-    toast({
-      title: "Added to cart",
-      description: `${quantity} × ${product.name} added to your cart`,
-    });
-  };
+    if (!product) return;
 
-  // Donate function
-  const handleDonate = () => {
-    if (!user) {
+    try {
+      // Track the cart event if product has a seller ID
+      if (product.sellerId) {
+        await trackProductEvent(
+          product.id,
+          product.sellerId,
+          'cart',
+          {
+            productName: product.name,
+            quantity,
+            value: product.price * quantity,
+            buyerId: user.id
+          }
+        );
+
+        // Create notification for seller
+        await createSellerNotification(
+          product.sellerId,
+          product.id,
+          'cart',
+          user.id,
+          {
+            productName: product.name,
+            quantity,
+            value: product.price * quantity,
+            buyerName: user.name
+          }
+        );
+      }
+
       toast({
-        title: "Please login",
-        description: "You need to login to donate items",
-        variant: "destructive"
+        title: "Added to cart",
+        description: `${quantity} × ${product.name} added to your cart`,
       });
-      navigate("/login");
-      return;
+    } catch (err) {
+      console.error('Error tracking cart event:', err);
+      // Still show success toast even if tracking fails
+      toast({
+        title: "Added to cart",
+        description: `${quantity} × ${product.name} added to your cart`,
+      });
     }
-
-    toast({
-      description: `Thank you for donating ${quantity} × ${product.name}!`,
-
-    });
   };
+
+  // Donation functionality removed for buyers
 
   // Save to wishlist
   const handleSaveItem = () => {
@@ -167,19 +237,27 @@ const ProductDetail = () => {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-12 flex justify-center">
-        <div className="animate-pulse w-full max-w-6xl">
-          <div className="h-8 bg-muted rounded-md w-1/3 mb-8"></div>
-          <div className="flex flex-col md:flex-row gap-8">
-            <div className="md:w-1/2 aspect-square bg-muted rounded-lg"></div>
-            <div className="md:w-1/2 space-y-4">
-              <div className="h-8 bg-muted rounded-md w-3/4"></div>
-              <div className="h-6 bg-muted rounded-md w-1/4"></div>
-              <div className="h-4 bg-muted rounded-md w-full mt-6"></div>
-              <div className="h-4 bg-muted rounded-md w-full"></div>
-              <div className="h-4 bg-muted rounded-md w-2/3"></div>
-              <div className="h-12 bg-muted rounded-md w-full mt-8"></div>
-            </div>
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">Loading product details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-12 flex flex-col items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="bg-destructive/10 text-destructive p-4 rounded-md mb-6">
+            <p>{error}</p>
           </div>
+          <Button asChild>
+            <Link to="/products">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Products
+            </Link>
+          </Button>
         </div>
       </div>
     );
@@ -300,45 +378,21 @@ const ProductDetail = () => {
                 size="lg"
                 className="flex-1"
                 disabled={!product.inStock}
-                onClick={isDonate ? handleDonate : handleAddToCart}
+                onClick={handleAddToCart}
               >
-                {isDonate ? (
-                  <>
-                    <Gift className="mr-2 h-5 w-5" />
-                    Donate Now (₹{(product.price * quantity).toFixed(2)})
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="mr-2 h-5 w-5" />
-                    Add to Cart
-                  </>
-                )}
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                Add to Cart
               </Button>
 
-              {!isDonate && (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="flex-1 sm:flex-none"
-                  onClick={handleSaveItem}
-                >
-                  <Heart className="mr-2 h-5 w-5" />
-                  Save
-                </Button>
-              )}
-
-              {isDonate && (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  asChild
-                >
-                  <Link to={`/products/${id}`}>
-                    <ShoppingCart className="mr-2 h-5 w-5" />
-                    Buy Instead
-                  </Link>
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                size="lg"
+                className="flex-1 sm:flex-none"
+                onClick={handleSaveItem}
+              >
+                <Heart className="mr-2 h-5 w-5" />
+                Save
+              </Button>
             </div>
           </div>
         </div>

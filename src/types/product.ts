@@ -13,6 +13,7 @@ export interface Product {
   quantity: number;
   rating?: number;
   specifications?: { name: string; value: string }[];
+  sellerId?: string; // ID of the seller who added this product
 }
 
 export interface DonationDetails {

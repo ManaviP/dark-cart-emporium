@@ -2,16 +2,17 @@
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuGroup, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Menu, ShoppingCart, Package, User, LogOut, Search } from "lucide-react";
+import { Menu, ShoppingCart, Package, User, LogOut, Search, Bell } from "lucide-react";
+import Notifications from "./Notifications";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 
@@ -22,11 +23,14 @@ interface NavbarProps {
 const Navbar = ({ onMenuClick }: NavbarProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  
+
   const handleLogout = async () => {
     try {
+      console.log('Navbar: Handling logout click');
+      // Don't navigate - let the logout function handle the redirect
       await logout();
-      navigate("/login");
+      console.log('Navbar: Logout function completed');
+      // The logout function will redirect to home page
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -48,7 +52,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
           <Menu className="h-6 w-6" />
           <span className="sr-only">Toggle menu</span>
         </Button>
-        
+
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 mr-4">
           <div className="relative size-8 overflow-hidden rounded-full bg-primary/20 flex items-center justify-center">
@@ -58,28 +62,35 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
             DarkCart
           </span>
         </Link>
-        
+
         {/* Search */}
         <div className="relative hidden md:flex flex-1 px-4">
           <Search className="absolute left-7 top-3 h-4 w-4 text-muted-foreground" />
-          <Input 
+          <Input
             placeholder="Search products..."
             className="w-full max-w-sm pl-9 bg-muted/50"
           />
         </div>
-        
+
         {/* Navigation Icons */}
         <div className="flex items-center gap-2 md:gap-4">
           {user && (
-            <Link to="/cart">
-              <Button variant="ghost" size="icon" className="relative">
-                <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 size-5 rounded-full bg-primary text-[10px] font-medium flex items-center justify-center">3</span>
-                <span className="sr-only">Cart</span>
-              </Button>
-            </Link>
+            <>
+              <Link to="/cart">
+                <Button variant="ghost" size="icon" className="relative">
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 size-5 rounded-full bg-primary text-[10px] font-medium flex items-center justify-center">3</span>
+                  <span className="sr-only">Cart</span>
+                </Button>
+              </Link>
+
+              {/* Notifications */}
+              {(user.role === 'seller' || user.role === 'admin') && (
+                <Notifications />
+              )}
+            </>
           )}
-          
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -107,7 +118,13 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
-                  
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile/edit" className="w-full cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Change Account Type</span>
+                    </Link>
+                  </DropdownMenuItem>
+
                   {user.role === "buyer" && (
                     <DropdownMenuItem asChild>
                       <Link to="/dashboard" className="w-full cursor-pointer">
@@ -116,7 +133,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  
+
                   {user.role === "seller" && (
                     <DropdownMenuItem asChild>
                       <Link to="/seller" className="w-full cursor-pointer">
@@ -125,7 +142,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  
+
                   {user.role === "admin" && (
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="w-full cursor-pointer">
@@ -134,7 +151,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  
+
                   {user.role === "logistics" && (
                     <DropdownMenuItem asChild>
                       <Link to="/logistics" className="w-full cursor-pointer">
@@ -145,7 +162,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                   )}
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="cursor-pointer text-destructive focus:text-destructive"
                   onClick={handleLogout}
                 >

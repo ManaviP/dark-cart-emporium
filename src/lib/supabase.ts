@@ -8,9 +8,47 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables. Please check your .env file.');
 }
 
+// Create a more robust storage mechanism for auth tokens
+const customStorage = {
+  getItem: (key: string) => {
+    const value = localStorage.getItem(key);
+    console.log('Getting auth item from storage:', key, value ? 'exists' : 'not found');
+    return value;
+  },
+  setItem: (key: string, value: string) => {
+    console.log('Setting auth item in storage:', key);
+    localStorage.setItem(key, value);
+
+    // Also store in sessionStorage for cross-browser support
+    try {
+      sessionStorage.setItem(key, value);
+    } catch (e) {
+      console.error('Failed to set item in sessionStorage:', e);
+    }
+  },
+  removeItem: (key: string) => {
+    console.log('Removing auth item from storage:', key);
+    localStorage.removeItem(key);
+    try {
+      sessionStorage.removeItem(key);
+    } catch (e) {
+      console.error('Failed to remove item from sessionStorage:', e);
+    }
+  }
+};
+
 export const supabase = createClient<Database>(
   supabaseUrl || '',
-  supabaseAnonKey || ''
+  supabaseAnonKey || '',
+  {
+    auth: {
+      persistSession: true,
+      storageKey: 'dark-cart-auth-token',
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: customStorage
+    }
+  }
 );
 
 // Helper function to get user ID from session
