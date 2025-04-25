@@ -228,6 +228,7 @@ export const createSellerNotification = async (
       .insert([{
         user_id: sellerId,
         type: eventType,
+        title: getNotificationTitle(eventType, details),
         product_id: productId,
         from_user_id: buyerId,
         message: getNotificationMessage(eventType, details),
@@ -241,6 +242,24 @@ export const createSellerNotification = async (
     }
   } catch (error) {
     console.error('Error in createSellerNotification:', error);
+  }
+};
+
+// Helper function to generate notification titles
+const getNotificationTitle = (eventType: TrackingEventType, details: any): string => {
+  const productName = details.productName || 'your product';
+  
+  switch (eventType) {
+    case 'view':
+      return `New View: ${productName}`;
+    case 'cart':
+      return `Added to Cart: ${productName}`;
+    case 'purchase':
+      return `New Order: ${productName}`;
+    case 'donation':
+      return `New Donation: ${productName}`;
+    default:
+      return `Product Activity: ${productName}`;
   }
 };
 
@@ -273,7 +292,7 @@ export const getUserNotifications = async (limit: number = 20): Promise<any[]> =
       .from('notifications')
       .select(`
         *,
-        products:product_id (
+        product:product_id (
           id,
           name,
           image
@@ -288,7 +307,12 @@ export const getUserNotifications = async (limit: number = 20): Promise<any[]> =
       .order('created_at', { ascending: false })
       .limit(limit);
       
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      throw error;
+    }
+
+    console.log('Fetched notifications:', data);
     return data || [];
   } catch (error) {
     console.error('Error fetching user notifications:', error);

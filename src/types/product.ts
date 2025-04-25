@@ -1,5 +1,5 @@
 export interface Product {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: number;
@@ -7,13 +7,13 @@ export interface Product {
   image: string;
   perishable: boolean;
   expiryDate?: string; // Optional for non-perishable items
-  priority: 'low' | 'medium' | 'high';
+  priority: string;
   company: string;
   inStock: boolean;
   quantity: number;
   rating?: number;
   specifications?: { name: string; value: string }[];
-  sellerId?: string; // ID of the seller who added this product
+  sellerId: string;
 }
 
 export interface DonationDetails {

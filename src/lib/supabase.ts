@@ -53,8 +53,25 @@ export const supabase = createClient<Database>(
 
 // Helper function to get user ID from session
 export const getCurrentUserId = async (): Promise<string | null> => {
-  const { data: { session } } = await supabase.auth.getSession();
-  return session?.user?.id || null;
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("Error getting session:", error);
+      return null;
+    }
+
+    if (!session) {
+      console.log("No active session found");
+      return null;
+    }
+
+    console.log("Current user ID:", session.user?.id);
+    return session?.user?.id || null;
+  } catch (error) {
+    console.error("Unexpected error in getCurrentUserId:", error);
+    return null;
+  }
 };
 
 // Helper function to get current user

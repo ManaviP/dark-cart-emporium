@@ -1,11 +1,35 @@
 import { supabase, getCurrentUserId } from "@/lib/supabase";
 
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  in_stock: boolean;
+  seller_id: string;
+}
+
+interface CartItemResponse {
+  id: string;
+  product_id: string;
+  quantity: number;
+  products: Product;
+}
+
+interface CartItemWithProducts {
+  id: string;
+  product_id: string;
+  quantity: number;
+  products: Product[];
+}
+
 export interface CartItem {
-  id: number;
-  productId: number;
+  id: string;
+  productId: string;
   quantity: number;
   product: {
-    id: number;
+    id: string;
     name: string;
     price: number;
     image: string;
@@ -18,8 +42,14 @@ export interface CartItem {
 // Get user's cart
 export const getCart = async (): Promise<CartItem[]> => {
   try {
+    console.log("Getting cart items...");
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('User not authenticated');
+    if (!userId) {
+      console.error('User not authenticated');
+      throw new Error('User not authenticated');
+    }
+
+    console.log("Getting cart for user:", userId);
 
     // Get user's cart
     const { data: cart, error: cartError } = await supabase
@@ -29,8 +59,10 @@ export const getCart = async (): Promise<CartItem[]> => {
       .single();
 
     if (cartError) {
+      console.log("Cart error:", cartError);
       // If cart doesn't exist, create one
       if (cartError.code === 'PGRST116') {
+        console.log("Cart not found, creating new cart");
         const { data: newCart, error: createError } = await supabase
           .from('carts')
           .insert([
@@ -43,15 +75,23 @@ export const getCart = async (): Promise<CartItem[]> => {
           .select()
           .single();
 
-        if (createError) throw createError;
-        
+        if (createError) {
+          console.error("Error creating cart:", createError);
+          throw createError;
+        }
+
+        console.log("New cart created:", newCart);
         return []; // New cart is empty
       } else {
+        console.error("Unexpected cart error:", cartError);
         throw cartError;
       }
     }
 
+    console.log("Found existing cart:", cart);
+
     // Get cart items with product details
+    console.log("Getting cart items for cart:", cart.id);
     const { data: cartItems, error: itemsError } = await supabase
       .from('cart_items')
       .select(`
@@ -70,23 +110,49 @@ export const getCart = async (): Promise<CartItem[]> => {
       `)
       .eq('cart_id', cart.id);
 
-    if (itemsError) throw itemsError;
+    if (itemsError) {
+      console.error("Error fetching cart items:", itemsError);
+      throw itemsError;
+    }
+
+    // Check if we have any items
+    if (!cartItems || cartItems.length === 0) {
+      console.log("Cart is empty");
+      return [];
+    }
+
+    console.log("Found cart items:", cartItems.length);
 
     // Transform data to match CartItem interface
-    return cartItems.map(item => ({
-      id: item.id,
-      productId: item.product_id,
-      quantity: item.quantity,
-      product: {
-        id: item.products.id,
-        name: item.products.name,
-        price: item.products.price,
-        image: item.products.image,
-        category: item.products.category,
-        inStock: item.products.in_stock,
-        sellerId: item.products.seller_id,
-      },
-    }));
+    const transformedItems = cartItems.map(item => {
+      console.log("Processing cart item:", item);
+
+      // Handle case where products might be an array or a single object
+      const product = Array.isArray(item.products) ? item.products[0] : item.products;
+
+      if (!product) {
+        console.error('Product not found for cart item:', item);
+        return null;
+      }
+
+      return {
+        id: item.id.toString(),
+        productId: item.product_id.toString(),
+        quantity: item.quantity,
+        product: {
+          id: product.id.toString(),
+          name: product.name,
+          price: product.price,
+          image: product.image || 'https://placehold.co/300x300/1a1f2c/ffffff?text=Product',
+          category: product.category,
+          inStock: product.in_stock,
+          sellerId: product.seller_id,
+        },
+      };
+    }).filter(Boolean) as CartItem[];
+
+    console.log("Transformed cart items:", transformedItems);
+    return transformedItems;
   } catch (error) {
     console.error('Error fetching cart:', error);
     return [];
@@ -94,7 +160,7 @@ export const getCart = async (): Promise<CartItem[]> => {
 };
 
 // Add item to cart
-export const addToCart = async (productId: number, quantity: number): Promise<CartItem | null> => {
+export const addToCart = async (productId: string, quantity: number): Promise<CartItem | null> => {
   try {
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('User not authenticated');
@@ -151,7 +217,7 @@ export const addToCart = async (productId: number, quantity: number): Promise<Ca
       const newQuantity = existingItem.quantity + quantity;
       const { data: updatedItem, error: updateError } = await supabase
         .from('cart_items')
-        .update({ 
+        .update({
           quantity: newQuantity,
           updated_at: new Date().toISOString(),
         })
@@ -168,14 +234,14 @@ export const addToCart = async (productId: number, quantity: number): Promise<Ca
         .eq('id', cart.id);
 
       return {
-        id: updatedItem.id,
-        productId: updatedItem.product_id,
+        id: updatedItem.id.toString(),
+        productId: updatedItem.product_id.toString(),
         quantity: updatedItem.quantity,
         product: {
-          id: product.id,
+          id: product.id.toString(),
           name: product.name,
           price: product.price,
-          image: product.image,
+          image: product.image || 'https://placehold.co/300x300/1a1f2c/ffffff?text=Product',
           category: product.category,
           inStock: product.in_stock,
           sellerId: product.seller_id,
@@ -206,14 +272,14 @@ export const addToCart = async (productId: number, quantity: number): Promise<Ca
         .eq('id', cart.id);
 
       return {
-        id: newItem.id,
-        productId: newItem.product_id,
+        id: newItem.id.toString(),
+        productId: newItem.product_id.toString(),
         quantity: newItem.quantity,
         product: {
-          id: product.id,
+          id: product.id.toString(),
           name: product.name,
           price: product.price,
-          image: product.image,
+          image: product.image || 'https://placehold.co/300x300/1a1f2c/ffffff?text=Product',
           category: product.category,
           inStock: product.in_stock,
           sellerId: product.seller_id,
@@ -227,7 +293,7 @@ export const addToCart = async (productId: number, quantity: number): Promise<Ca
 };
 
 // Update cart item quantity
-export const updateCartItem = async (itemId: number, quantity: number): Promise<CartItem | null> => {
+export const updateCartItem = async (itemId: string, quantity: number): Promise<CartItem | null> => {
   try {
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('User not authenticated');
@@ -244,12 +310,11 @@ export const updateCartItem = async (itemId: number, quantity: number): Promise<
     // Update item quantity
     const { data: updatedItem, error: updateError } = await supabase
       .from('cart_items')
-      .update({ 
+      .update({
         quantity: quantity,
         updated_at: new Date().toISOString(),
       })
       .eq('id', itemId)
-      .eq('cart_id', cart.id) // Ensure item belongs to user's cart
       .select(`
         id,
         product_id,
@@ -274,18 +339,28 @@ export const updateCartItem = async (itemId: number, quantity: number): Promise<
       .update({ updated_at: new Date().toISOString() })
       .eq('id', cart.id);
 
+    // Handle case where products might be an array or a single object
+    const product = Array.isArray(updatedItem.products)
+      ? updatedItem.products[0]
+      : updatedItem.products;
+
+    if (!product) {
+      console.error('Product not found for updated cart item:', updatedItem);
+      throw new Error('Product not found for cart item');
+    }
+
     return {
-      id: updatedItem.id,
-      productId: updatedItem.product_id,
+      id: updatedItem.id.toString(),
+      productId: updatedItem.product_id.toString(),
       quantity: updatedItem.quantity,
       product: {
-        id: updatedItem.products.id,
-        name: updatedItem.products.name,
-        price: updatedItem.products.price,
-        image: updatedItem.products.image,
-        category: updatedItem.products.category,
-        inStock: updatedItem.products.in_stock,
-        sellerId: updatedItem.products.seller_id,
+        id: product.id.toString(),
+        name: product.name,
+        price: product.price,
+        image: product.image || 'https://placehold.co/300x300/1a1f2c/ffffff?text=Product',
+        category: product.category,
+        inStock: product.in_stock,
+        sellerId: product.seller_id,
       },
     };
   } catch (error) {
@@ -295,7 +370,7 @@ export const updateCartItem = async (itemId: number, quantity: number): Promise<
 };
 
 // Remove item from cart
-export const removeFromCart = async (itemId: number): Promise<boolean> => {
+export const removeFromCart = async (itemId: string): Promise<boolean> => {
   try {
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('User not authenticated');
@@ -313,8 +388,7 @@ export const removeFromCart = async (itemId: number): Promise<boolean> => {
     const { error: deleteError } = await supabase
       .from('cart_items')
       .delete()
-      .eq('id', itemId)
-      .eq('cart_id', cart.id); // Ensure item belongs to user's cart
+      .eq('id', itemId);
 
     if (deleteError) throw deleteError;
 

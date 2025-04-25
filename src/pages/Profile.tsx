@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth, Address, UserProfile } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
@@ -32,6 +31,7 @@ import { User, Mail, Phone, Home, Edit, Plus, CheckCircle, Trash } from "lucide-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Form schemas
 const profileFormSchema = z.object({
@@ -94,6 +94,10 @@ const Profile = () => {
       });
 
       setIsEditingProfile(false);
+      profileForm.reset({
+        name: data.name,
+        phone: data.phone,
+      });
 
       toast({
         description: "Profile updated successfully",
@@ -112,7 +116,16 @@ const Profile = () => {
     try {
       if (editingAddress) {
         // Update existing address
-        await updateAddress(editingAddress.id, data);
+        await updateAddress(editingAddress.id, {
+          name: data.name,
+          line1: data.line1,
+          line2: data.line2,
+          city: data.city,
+          state: data.state,
+          postal_code: data.postal_code,
+          country: data.country,
+          is_default: data.is_default
+        });
         setEditingAddress(null);
 
         toast({
@@ -121,15 +134,15 @@ const Profile = () => {
       } else {
         // Add new address
         await addAddress({
-        name: data.name,
-        line1: data.line1,
-        line2: data.line2,
-        city: data.city,
-        state: data.state,
-        postal_code: data.postal_code,
-        country: data.country,
-        is_default: data.is_default
-      });
+          name: data.name,
+          line1: data.line1,
+          line2: data.line2,
+          city: data.city,
+          state: data.state,
+          postal_code: data.postal_code,
+          country: data.country,
+          is_default: data.is_default
+        });
         setIsAddingAddress(false);
 
         toast({
@@ -344,420 +357,405 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        {/* Addresses Card */}
-        <Card className="border border-border/40 bg-card/30 backdrop-blur-sm">
-          <CardHeader className="pb-3">
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>My Addresses</CardTitle>
-                <CardDescription>
-                  Manage your shipping addresses
-                </CardDescription>
-              </div>
-              <Dialog
-                open={isAddingAddress}
-                onOpenChange={setIsAddingAddress}
-              >
-                <DialogTrigger asChild>
-                  <Button size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Address
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[475px]">
-                  <DialogHeader>
-                    <DialogTitle>Add New Address</DialogTitle>
-                    <DialogDescription>
-                      Enter your address details below
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Form {...addressForm}>
-                    <form
-                      onSubmit={addressForm.handleSubmit(onAddressSubmit)}
-                      className="space-y-4 py-4"
-                    >
-                      <FormField
-                        control={addressForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Address Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Home, Work, etc." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={addressForm.control}
-                        name="line1"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Address Line 1</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Street address" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={addressForm.control}
-                        name="line2"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Address Line 2 (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Apartment, suite, etc." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={addressForm.control}
-                          name="city"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>City</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={addressForm.control}
-                          name="state"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>State</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={addressForm.control}
-                          name="postal_code"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Postal Code</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={addressForm.control}
-                          name="country"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Country</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={addressForm.control}
-                        name="is_default"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                            <FormControl>
-                              <input
-                                type="checkbox"
-                                className="accent-primary"
-                                checked={field.value}
-                                onChange={field.onChange}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>
-                                Make this my default shipping address
-                              </FormLabel>
-                              <FormDescription>
-                                This address will be used as your default shipping address
-                              </FormDescription>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-
-                      <DialogFooter>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setIsAddingAddress(false);
-                            addressForm.reset();
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit">Save Address</Button>
-                      </DialogFooter>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {user.addresses.length === 0 ? (
-              <div className="text-center py-8 border border-border/40 rounded-lg">
-                <div className="rounded-full bg-muted/50 p-3 mx-auto w-fit mb-4">
-                  <Home className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-medium mb-1">No addresses found</h3>
-                <p className="text-muted-foreground mb-4">
-                  You don't have any saved addresses yet.
-                </p>
-                <Dialog open={isAddingAddress} onOpenChange={setIsAddingAddress}>
-                  <DialogTrigger asChild>
-                    <Button>Add Your First Address</Button>
-                  </DialogTrigger>
-                </Dialog>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {user.addresses.map((address) => (
-                  <div
-                    key={address.id}
-                    className={`p-4 rounded-lg border border-border/40 ${
-                      address.is_default ? "bg-primary/5 border-primary/20" : ""
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium flex items-center">
-                          {address.name}
-                          {address.is_default && (
-                            <Badge className="ml-2 bg-primary/10 text-primary border-primary/20 text-xs">Default</Badge>
-                          )}
-                        </h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {address.line1}
-                          {address.line2 && <>, {address.line2}</>}
-                          <br />
-                          {address.city}, {address.state} {address.postal_code}
-                          <br />
-                          {address.country}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Dialog
-                          open={editingAddress?.id === address.id}
-                          onOpenChange={(open) => {
-                            if (!open) setEditingAddress(null);
-                          }}
-                        >
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEditAddress(address)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[475px]">
-                            <DialogHeader>
-                              <DialogTitle>Edit Address</DialogTitle>
-                              <DialogDescription>
-                                Update your address details
-                              </DialogDescription>
-                            </DialogHeader>
-                            <Form {...addressForm}>
-                              <form
-                                onSubmit={addressForm.handleSubmit(onAddressSubmit)}
-                                className="space-y-4 py-4"
-                              >
-                                <FormField
-                                  control={addressForm.control}
-                                  name="name"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Address Name</FormLabel>
-                                      <FormControl>
-                                        <Input placeholder="Home, Work, etc." {...field} />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-
-                                <FormField
-                                  control={addressForm.control}
-                                  name="line1"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Address Line 1</FormLabel>
-                                      <FormControl>
-                                        <Input placeholder="Street address" {...field} />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-
-                                <FormField
-                                  control={addressForm.control}
-                                  name="line2"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Address Line 2 (Optional)</FormLabel>
-                                      <FormControl>
-                                        <Input placeholder="Apartment, suite, etc." {...field} />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-
-                                <div className="grid grid-cols-2 gap-4">
-                                  <FormField
-                                    control={addressForm.control}
-                                    name="city"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>City</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-
-                                  <FormField
-                                    control={addressForm.control}
-                                    name="state"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>State</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                  <FormField
-                                    control={addressForm.control}
-                                    name="postal_code"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Postal Code</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-
-                                  <FormField
-                                    control={addressForm.control}
-                                    name="country"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>Country</FormLabel>
-                                        <FormControl>
-                                          <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
-
-                                <FormField
-                                  control={addressForm.control}
-                                  name="is_default"
-                                  render={({ field }) => (
-                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                                      <FormControl>
-                                        <input
-                                          type="checkbox"
-                                          className="accent-primary"
-                                          checked={field.value}
-                                          onChange={field.onChange}
-                                        />
-                                      </FormControl>
-                                      <div className="space-y-1 leading-none">
-                                        <FormLabel>
-                                          Make this my default shipping address
-                                        </FormLabel>
-                                        <FormDescription>
-                                          This address will be used as your default shipping address
-                                        </FormDescription>
-                                      </div>
-                                    </FormItem>
-                                  )}
-                                />
-
-                                <DialogFooter>
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => setEditingAddress(null)}
-                                  >
-                                    Cancel
-                                  </Button>
-                                  <Button type="submit">Update Address</Button>
-                                </DialogFooter>
-                              </form>
-                            </Form>
-                          </DialogContent>
-                        </Dialog>
-
-                        {!address.is_default && (
+        {/* Addresses Card - Only show for buyers */}
+        {user.role === 'buyer' && (
+          <Card className="border border-border/40 bg-card/30 backdrop-blur-sm">
+            <CardHeader className="pb-3">
+              <CardTitle>Shipping Addresses</CardTitle>
+              <CardDescription>
+                Manage your shipping addresses for orders
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {user.addresses.length === 0 ? (
+                  <div className="text-center py-6">
+                    <div className="rounded-full bg-muted/50 p-3 mx-auto w-fit mb-4">
+                      <Home className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">No addresses found</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Add a shipping address to make checkout easier
+                    </p>
+                    <Button onClick={() => setIsAddingAddress(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Address
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {user.addresses.map((address) => (
+                      <div
+                        key={address.id}
+                        className="flex items-start justify-between p-4 border rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium">{address.name}</h4>
+                            {address.is_default && (
+                              <Badge variant="secondary">Default</Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {address.line1}
+                            {address.line2 && <>, {address.line2}</>}
+                            <br />
+                            {address.city}, {address.state} {address.postal_code}
+                            <br />
+                            {address.country}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleSetDefaultAddress(address.id)}
+                            onClick={() => handleEditAddress(address)}
                           >
-                            <CheckCircle className="h-4 w-4" />
+                            <Edit className="h-4 w-4" />
                           </Button>
-                        )}
-
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteAddress(address.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteAddress(address.id)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                          {!address.is_default && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleSetDefaultAddress(address.id)}
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    ))}
+                    <Button onClick={() => setIsAddingAddress(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add New Address
+                    </Button>
                   </div>
-                ))}
+                )}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
+
+      {/* Add Address Dialog */}
+      <Dialog open={isAddingAddress} onOpenChange={setIsAddingAddress}>
+        <DialogContent className="sm:max-w-[475px] h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Add New Address</DialogTitle>
+            <DialogDescription>
+              Enter your address details below
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...addressForm}>
+            <form
+              onSubmit={addressForm.handleSubmit(onAddressSubmit)}
+              className="flex-1 overflow-y-auto space-y-4 py-4"
+            >
+              <FormField
+                control={addressForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Home, Work, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={addressForm.control}
+                name="line1"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address Line 1</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Street address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={addressForm.control}
+                name="line2"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address Line 2 (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Apartment, suite, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={addressForm.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addressForm.control}
+                  name="state"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>State</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={addressForm.control}
+                  name="postal_code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Postal Code</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addressForm.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={addressForm.control}
+                name="is_default"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Set as default address</FormLabel>
+                      <FormDescription>
+                        This address will be used as your default shipping address
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsAddingAddress(false);
+                    addressForm.reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Save Address</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Address Dialog */}
+      <Dialog
+        open={!!editingAddress}
+        onOpenChange={(open) => {
+          if (!open) setEditingAddress(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-[475px] h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Edit Address</DialogTitle>
+            <DialogDescription>
+              Update your address details
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...addressForm}>
+            <form
+              onSubmit={addressForm.handleSubmit(onAddressSubmit)}
+              className="flex-1 overflow-y-auto space-y-4 py-4"
+            >
+              <FormField
+                control={addressForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Home, Work, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={addressForm.control}
+                name="line1"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address Line 1</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Street address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={addressForm.control}
+                name="line2"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address Line 2 (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Apartment, suite, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={addressForm.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addressForm.control}
+                  name="state"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>State</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={addressForm.control}
+                  name="postal_code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Postal Code</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={addressForm.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={addressForm.control}
+                name="is_default"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Set as default address</FormLabel>
+                      <FormDescription>
+                        This address will be used as your default shipping address
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditingAddress(null);
+                    addressForm.reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Save Changes</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

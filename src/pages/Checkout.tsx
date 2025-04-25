@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CreditCard, Truck, Home, CheckCircle2, Clock, ShieldCheck, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/auth-context";
+import { getCart } from "@/services/cartService";
+import { createOrder, OrderItem } from "@/services/orderService";
+import { getUserAddresses } from "@/services/addressService";
+import { Address } from "@/context/auth-context";
 
 // Mock cart data
 const mockCartItems = [
@@ -49,7 +52,9 @@ const Checkout = () => {
   const navigate = useNavigate();
 
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [processingOrder, setProcessingOrder] = useState(false);
   const [activeTab, setActiveTab] = useState("delivery");
   const [saveAddress, setSaveAddress] = useState(true);
@@ -72,22 +77,86 @@ const Checkout = () => {
 
   // Load cart data and user addresses
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      setCartItems(mockCartItems);
-
-      // Set default address if user has one
-      if (user?.addresses && user.addresses.length > 0) {
-        const defaultAddress = user.addresses.find(addr => addr.is_default);
-        if (defaultAddress) {
-          setDeliveryAddress(defaultAddress.id);
-        }
+    const loadCartData = async () => {
+      if (!user || user.role !== 'buyer') {
+        navigate("/");
+        return;
       }
 
-      setLoading(false);
-    }, 500);
-  }, [user]);
+      try {
+        setLoading(true);
+
+        // Get real cart data from Supabase
+        const items = await getCart();
+
+        if (items.length === 0) {
+          toast({
+            title: "Empty Cart",
+            description: "Your cart is empty. Add some items before checkout.",
+            variant: "destructive"
+          });
+          navigate("/buyer/cart");
+          return;
+        }
+
+        // Transform cart items to match the format needed for display
+        const transformedItems = items.map(item => ({
+          id: item.id,
+          productId: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          image: item.product.image,
+          sellerId: item.product.sellerId
+        }));
+
+        setCartItems(transformedItems);
+      } catch (error) {
+        console.error("Error loading cart:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load your cart",
+          variant: "destructive"
+        });
+        navigate("/buyer/cart");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const loadAddresses = async () => {
+      if (!user) return;
+
+      try {
+        setLoadingAddresses(true);
+        console.log("Fetching addresses from Supabase");
+
+        // Get addresses from Supabase
+        const userAddresses = await getUserAddresses();
+        console.log("Fetched addresses:", userAddresses);
+
+        setAddresses(userAddresses);
+
+        // Set default address if available
+        if (userAddresses.length > 0) {
+          const defaultAddress = userAddresses.find(addr => addr.is_default);
+          if (defaultAddress) {
+            setDeliveryAddress(defaultAddress.id);
+          } else {
+            // If no default address, use the first one
+            setDeliveryAddress(userAddresses[0].id);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading addresses:", error);
+      } finally {
+        setLoadingAddresses(false);
+      }
+    };
+
+    loadCartData();
+    loadAddresses();
+  }, [user, navigate, toast]);
 
   // Format credit card number
   const formatCardNumber = (value: string) => {
@@ -111,79 +180,60 @@ const Checkout = () => {
   const placeOrder = async () => {
     if (!user) {
       toast({
-        title: "Authentication required",
-        description: "Please log in to complete your order",
-        variant: "destructive"
+        title: 'Authentication Required',
+        description: 'Please log in to place an order',
+        variant: 'destructive'
       });
-      navigate("/login");
+      navigate('/login');
       return;
     }
 
-    // Form validation
-    if (activeTab === "delivery" && !deliveryAddress) {
+    if (!deliveryAddress) {
       toast({
-        title: "Address required",
-        description: "Please select a delivery address",
-        variant: "destructive"
+        title: 'Address Required',
+        description: 'Please select a delivery address',
+        variant: 'destructive'
       });
       return;
     }
 
-    if (activeTab === "payment") {
-      if (paymentMethod === "credit-card") {
-        if (!nameOnCard || !cardNumber || !expiryDate || !cvv) {
-          toast({
-            title: "Payment information required",
-            description: "Please fill out all payment fields",
-            variant: "destructive"
-          });
-          return;
-        }
+    if (cartItems.length === 0) {
+      toast({
+        title: 'Empty Cart',
+        description: 'Your cart is empty. Add some items before checkout.',
+        variant: 'destructive'
+      });
+      navigate('/buyer/cart');
+      return;
+    }
 
-        if (cardNumber.replace(/\s/g, '').length < 16) {
-          toast({
-            title: "Invalid card number",
-            description: "Please enter a valid 16-digit card number",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
-          toast({
-            title: "Invalid expiry date",
-            description: "Please enter expiry date in MM/YY format",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        if (!/^\d{3,4}$/.test(cvv)) {
-          toast({
-            title: "Invalid CVV",
-            description: "Please enter a valid 3 or 4 digit CVV code",
-            variant: "destructive"
-          });
-          return;
-        }
-      }
-
-      // Process order
+    try {
       setProcessingOrder(true);
 
-      // Simulate API call for order processing
-      setTimeout(() => {
-        setProcessingOrder(false);
-        setOrderPlaced(true);
+      console.log("Placing order with address:", deliveryAddress);
+      console.log("Cart items:", cartItems);
 
-        toast({
-          title: "Order placed successfully!",
-          description: "Your order has been received and is being processed.",
-        });
-      }, 2000);
-    } else {
-      // Move to payment step
-      setActiveTab("payment");
+      // Create the order
+      const order = await createOrder(deliveryAddress, cartItems);
+
+      console.log("Order created successfully:", order);
+
+      // Set order placed flag to show success page
+      setOrderPlaced(true);
+
+      toast({
+        title: 'Order Placed Successfully',
+        description: 'Your order has been placed and is being processed'
+      });
+    } catch (error) {
+      console.error('Error placing order:', error);
+      toast({
+        title: 'Error Placing Order',
+        description: 'There was an error processing your order. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setProcessingOrder(false);
     }
   };
 
@@ -220,7 +270,7 @@ const Checkout = () => {
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Button className="flex-1" asChild>
-                <Link to="/dashboard">
+                <Link to="/buyer/orders">
                   <Truck className="mr-2 h-4 w-4" />
                   Track Order
                 </Link>
@@ -248,7 +298,7 @@ const Checkout = () => {
           </p>
         </div>
         <Button variant="ghost" className="mt-4 md:mt-0" asChild>
-          <Link to="/cart">
+          <Link to="/buyer/cart">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Cart
           </Link>
@@ -284,7 +334,7 @@ const Checkout = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {loading ? (
+                    {loading || loadingAddresses ? (
                       <div className="space-y-4">
                         {[1, 2].map((i) => (
                           <div key={i} className="animate-pulse flex-1 space-y-3 py-3">
@@ -294,9 +344,9 @@ const Checkout = () => {
                           </div>
                         ))}
                       </div>
-                    ) : user?.addresses && user.addresses.length > 0 ? (
+                    ) : addresses.length > 0 ? (
                       <RadioGroup value={deliveryAddress} onValueChange={setDeliveryAddress}>
-                        {user.addresses.map((address) => (
+                        {addresses.map((address) => (
                           <div key={address.id} className="flex items-start space-x-3 border border-border/40 rounded-lg p-4 mb-3">
                             <RadioGroupItem value={address.id} id={`address-${address.id}`} className="mt-1" />
                             <div className="flex-1">
@@ -335,7 +385,7 @@ const Checkout = () => {
                       </div>
                     )}
 
-                    {user?.addresses && user.addresses.length > 0 && (
+                    {addresses.length > 0 && (
                       <div className="flex justify-between items-center mt-4 pt-4 border-t border-border/40">
                         <div className="flex items-center space-x-2">
                           <Checkbox
@@ -375,7 +425,7 @@ const Checkout = () => {
                             {shipping === 0 ? (
                               <span className="text-green-500">Free</span>
                             ) : (
-                              `₹${shipping.toFixed(2)}`
+                              `$${shipping.toFixed(2)}`
                             )}
                           </span>
                         </div>
@@ -593,7 +643,7 @@ const Checkout = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>₹{subtotal.toFixed(2)}</span>
+                    <span>${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
@@ -607,7 +657,7 @@ const Checkout = () => {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Tax (7%)</span>
-                    <span>₹{tax.toFixed(2)}</span>
+                    <span>${tax.toFixed(2)}</span>
                   </div>
                 </div>
 

@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -76,7 +75,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
         <div className="flex items-center gap-2 md:gap-4">
           {user && (
             <>
-              <Link to="/cart">
+              <Link to="/buyer/cart">
                 <Button variant="ghost" size="icon" className="relative">
                   <ShoppingCart className="h-5 w-5" />
                   <span className="absolute -top-1 -right-1 size-5 rounded-full bg-primary text-[10px] font-medium flex items-center justify-center">3</span>

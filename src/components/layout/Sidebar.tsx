@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { UserRole } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
@@ -56,18 +55,12 @@ const Sidebar = ({ open, setOpen, userRole }: SidebarProps) => {
     },
     {
       title: "Request Donation",
-      href: "/request-donation",
+      href: "/buyer/request-donation",
       icon: Gift
     },
     {
-      title: "Buyer Dashboard",
-      href: "/dashboard",
-      icon: BarChart3,
-      roleRequired: ["buyer"]
-    },
-    {
       title: "My Orders",
-      href: "/dashboard/orders",
+      href: "/buyer/orders",
       icon: Package,
       roleRequired: ["buyer"]
     },

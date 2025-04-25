@@ -20,11 +20,14 @@ const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const RequestDonation = lazy(() => import("./pages/RequestDonation"));
 const Cart = lazy(() => import("./pages/Cart"));
 const Checkout = lazy(() => import("./pages/Checkout"));
+const UserOrders = lazy(() => import("./pages/Orders"));
+const OrderDetail = lazy(() => import("./pages/OrderDetail"));
 const Profile = lazy(() => import("./pages/Profile"));
 const UserProfile = lazy(() => import("./pages/profile/UserProfile"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const Register = lazy(() => import("./pages/auth/Register"));
 const AuthCallback = lazy(() => import("./pages/auth/Callback"));
+const SavedProducts = lazy(() => import("./pages/SavedProducts"));
 const SellerDashboard = lazy(() => import("./pages/seller/Dashboard"));
 const SellerProducts = lazy(() => import("./pages/seller/Products"));
 const SellerAddProduct = lazy(() => import("./pages/seller/AddProduct"));
@@ -48,17 +51,19 @@ const AdminContent = lazy(() => import("./pages/admin/Content"));
 const AdminReports = lazy(() => import("./pages/admin/Reports"));
 const LogisticsDashboard = lazy(() => import("./pages/logistics/Dashboard"));
 const LogisticsOrders = lazy(() => import("./pages/logistics/Orders"));
+const BuyerOrders = lazy(() => import("./pages/buyer/Orders"));
+const OrderDetails = lazy(() => import("./pages/buyer/OrderDetails"));
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="dark" forcedTheme="dark">
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
             <Suspense fallback={<Loading />}>
               <Routes>
                 {/* Auth Routes */}
@@ -69,14 +74,26 @@ const App = () => (
                 {/* Main Layout Routes */}
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Index />} />
-                  <Route path="dashboard" element={<Dashboard />} />
                   <Route path="products" element={<ProductsList />} />
                   <Route path="products/:id" element={<ProductDetail />} />
-                  <Route path="request-donation" element={<RequestDonation />} />
-                  <Route path="cart" element={<Cart />} />
-                  <Route path="checkout" element={<Checkout />} />
+
+                  {/* Common Routes */}
                   <Route path="profile" element={<Profile />} />
                   <Route path="profile/edit" element={<UserProfile />} />
+
+                  {/* Buyer Routes */}
+                  <Route path="buyer">
+                    <Route path="cart" element={<Cart />} />
+                    <Route path="saved" element={<SavedProducts />} />
+                    <Route path="orders" element={<BuyerOrders />} />
+                    <Route path="checkout" element={<Checkout />} />
+                    <Route path="request-donation" element={<RequestDonation />} />
+                    <Route path="orders/:orderId" element={<OrderDetails />} />
+                  </Route>
+
+                  {/* Order Routes */}
+                  <Route path="orders" element={<UserOrders />} />
+                  <Route path="orders/:orderId" element={<OrderDetail />} />
 
                   {/* Seller Routes */}
                   <Route path="seller">
@@ -118,9 +135,9 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

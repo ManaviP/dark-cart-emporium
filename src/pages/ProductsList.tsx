@@ -37,7 +37,7 @@ import { Product } from "@/types/product";
 import { useToast } from "@/hooks/use-toast";
 import { addToCart } from "@/services/cartService";
 import { createSellerNotification } from "@/services/notificationService";
-import { user } from "@/contexts/UserContext";
+import { useAuth } from "@/context/auth-context";
 
 const categories = [
   { value: "all", label: "All Categories" },
@@ -84,6 +84,7 @@ const ProductsList = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Fetch products from Supabase
   useEffect(() => {
@@ -246,20 +247,6 @@ const ProductsList = () => {
             quantity: 1,
             value: product.price,
             buyerId: user.id
-          }
-        );
-
-        // Create notification for seller
-        await createSellerNotification(
-          product.sellerId,
-          product.id,
-          'cart',
-          user.id,
-          {
-            productName: product.name,
-            quantity: 1,
-            value: product.price,
-            buyerName: user.name
           }
         );
       }
